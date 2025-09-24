@@ -1,50 +1,55 @@
-name: "Publish"
+name: "Build & Release Dynamic Plugin"
 
 on:
   workflow_dispatch:
     inputs:
+      pluginPath:
+        description: "Path to plugin (e.g. plugins/kubernetes-ingestor)"
+        required: true
+        default: "plugins/kubernetes-ingestor"
       version:
-        description: "New version to release"
+        description: "Release version"
         required: true
-      npmOrgName:
-        description: "Organization name on npmjs.com"
-        required: true
-        default: "caponetto-tests"
       githubOrgName:
         description: "Organization name on github.com to fetch the code"
         required: true
-        default: "caponetto"
+        default: "TheCodingSheikh"
+      githubRepoName:
+        description: "Repository name on github.com to fetch the code"
+        required: true
+        default: "backstage-plugins"
       githubRefName:
         description: "Branch name on github.com to fetch the code"
         required: true
-        default: "KOGITO-9778"
+        default: "main"
+      exportCommandArgs:
+        description: "Additional arguments to pass to the export command"
+        required: false
+        default: ""
       dryRun:
-        description: "Dry run"
+        description: "Dry run (skip publishing)"
         required: true
         type: boolean
-        default: true
-
-concurrency:
-  group: ${{ inputs.version }}
+        default: false
 
 permissions:
   contents: write
 
 jobs:
-  publish:
+  build-release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout backstage-plugins
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ inputs.githubOrgName }}/backstage-plugins
-          ref: ${{ inputs.githubRefName }}
           fetch-depth: 0
+          repository: ${{ inputs.githubOrgName }}/${{ inputs.githubRepoName }}
+          ref: ${{ inputs.githubRefName }}
 
-      - name: Get the commit hash
-        id: get_commit_hash
-        run: echo "commit_hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,99 +57,39 @@ jobs:
           node-version: "18.x"
           cache: "yarn"
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: yarn --prefer-offline --frozen-lockfile
 
-      - name: Update the package version to ${{ inputs.version }}
+      - name: Install plugin dependencies
         run: |
-          echo Update version of plugins/orchestrator-common
-          cd plugins/orchestrator-common
-          current_version_common_package=$(node -p "require('./package.json').version")
-          yarn version --new-version ${{ inputs.version }} --no-git-tag-version
+          cd ${{ inputs.pluginPath }}
+          yarn --prefer-offline --frozen-lockfile
           cd -
 
-          echo Update version of plugins/orchestrator
-          cd plugins/orchestrator
-          yarn version --new-version ${{ inputs.version }} --no-git-tag-version
-          sed -i 's/"@janus-idp\/backstage-plugin-orchestrator-common": "'"$current_version_common_package"'"/"@janus-idp\/backstage-plugin-orchestrator-common": "'${{ inputs.version }}'"/g' package.json
+      - name: Export dynamic plugin
+        run: |
+          cd ${{ inputs.pluginPath }}
+          npx @red-hat-developer-hub/cli@latest plugin export ${{ inputs.exportCommandArgs }}
           cd -
 
-          echo Update version of plugins/orchestrator-backend
-          cd plugins/orchestrator-backend
-          yarn version --new-version ${{ inputs.version }} --no-git-tag-version
-          sed -i 's/"@janus-idp\/backstage-plugin-orchestrator-common": "'"$current_version_common_package"'"/"@janus-idp\/backstage-plugin-orchestrator-common": "'${{ inputs.version }}'"/g' package.json
+      - name: Package plugin (npm pack)
+        id: package
+        run: |
+          cd ${{ inputs.pluginPath }}/dist-dynamic
+          npm pack --json > pack.json
+          tarball=$(jq -r '.[0].filename' pack.json)
+          integrity=$(jq -r '.[0].integrity' pack.json)
+          echo "tarball=$tarball" >> $GITHUB_OUTPUT
+          echo "integrity=$integrity" >> $GITHUB_OUTPUT
           cd -
 
-      - name: Replace the package organization name to ${{ inputs.npmOrgName }}
-        run: |
-          old_string="@janus-idp/backstage-plugin-orchestrator"
-          new_string="@${{ inputs.npmOrgName }}/backstage-plugin-orchestrator"
-          grep -rl "$old_string" | xargs sed -i "s|$old_string|$new_string|g"
+      - name: Upload tgz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-tgz
+          path: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}
 
-          old_string="janus-idp.backstage-plugin-orchestrator"
-          new_string="${{ inputs.npmOrgName }}.backstage-plugin-orchestrator"
-          grep -rl "$old_string" | xargs sed -i "s|$old_string|$new_string|g"
-
-      - name: Print package names and versions
-        run: |
-          folders=("plugins/orchestrator-common" "plugins/orchestrator" "plugins/orchestrator-backend")
-          for folder in "${folders[@]}"; do
-            cd $folder
-            echo "Package name: $(node -p "require('./package.json').name")"
-            echo "Package version: $(node -p "require('./package.json').version")"
-            cd -
-          done
-
-      - name: Refresh dependencies
-        run: yarn --prefer-offline --frozen-lockfile
-
-      - name: Build the packages
-        run: |
-          echo Build plugins/orchestrator-common
-          cd plugins/orchestrator-common
-          yarn tsc && yarn build
-          cd -
-
-          echo Build plugins/orchestrator
-          cd plugins/orchestrator
-          yarn tsc && yarn build && yarn export-dynamic
-          cd -
-
-          echo Build plugins/orchestrator-backend
-          cd plugins/orchestrator-backend
-          yarn tsc && yarn build && yarn export-dynamic
-          cd -
-
-      - name: Delete exports property from orchestrator-backend/dist-dynamic
-        run: |
-          cd plugins/orchestrator-backend/dist-dynamic
-          jq 'del(.exports)' package.json > temp.json && mv temp.json package.json
-          cd -
-
-      - name: Publish packages to npmjs.com
-        if: ${{ !inputs.dryRun }}
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-          folders=("plugins/orchestrator-common" "plugins/orchestrator" "plugins/orchestrator-backend" "plugins/orchestrator-backend/dist-dynamic")
-          for folder in "${folders[@]}"; do
-            cd $folder
-            npm publish --access public
-            cd -
-          done
-
-      - name: Collect integrity hashes
-        id: collect_integrity
-        if: ${{ !inputs.dryRun }}
-        run: |
-          package="@${{ inputs.npmOrgName }}/backstage-plugin-orchestrator"
-          integrity=$(curl -s https://registry.npmjs.org/$package | jq -r ".versions[\"${{ inputs.version }}\"].dist.integrity")
-          echo "backstage_plugin_orchestrator=$integrity" >> $GITHUB_OUTPUT
-
-          package="@${{ inputs.npmOrgName }}/backstage-plugin-orchestrator-backend-dynamic"
-          integrity=$(curl -s https://registry.npmjs.org/$package | jq -r ".versions[\"${{ inputs.version }}\"].dist.integrity")
-          echo "backstage_plugin_orchestrator_backend_dynamic=$integrity" >> $GITHUB_OUTPUT
-
-      - name: Publish the release on GitHub
+      - name: Publish GitHub Release
         if: ${{ !inputs.dryRun }}
         uses: ncipollo/release-action@v1
         with:
@@ -152,8 +97,12 @@ jobs:
           name: ${{ inputs.version }}
           makeLatest: true
           body: |
-            ### Commit from `${{ inputs.githubOrgName }}/backstage-plugins @ ${{ inputs.githubRefName }}`
-            `${{ steps.get_commit_hash.outputs.commit_hash }}`
-            ### Packages
-            - @${{ inputs.npmOrgName }}/backstage-plugin-orchestrator (`${{ steps.collect_integrity.outputs.backstage_plugin_orchestrator }}`)
-            - @${{ inputs.npmOrgName }}/backstage-plugin-orchestrator-backend-dynamic (`${{ steps.collect_integrity.outputs.backstage_plugin_orchestrator_backend_dynamic }}`)
+            ### Commit
+            ${{ steps.commit.outputs.hash }}
+
+            ### Plugin
+            Path: `${{ inputs.pluginPath }}`
+            
+            ### Integrity
+            `${{ steps.package.outputs.integrity }}`
+        artifacts: "${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}"
