@@ -1,0 +1,108 @@
+name: "Build & Release Dynamic Plugin"
+
+on:
+  workflow_dispatch:
+    inputs:
+      pluginPath:
+        description: "Path to plugin (e.g. plugins/kubernetes-ingestor)"
+        required: true
+        default: "plugins/kubernetes-ingestor"
+      version:
+        description: "Release version"
+        required: true
+      githubOrgName:
+        description: "Organization name on github.com to fetch the code"
+        required: true
+        default: "TheCodingSheikh"
+      githubRepoName:
+        description: "Repository name on github.com to fetch the code"
+        required: true
+        default: "backstage-plugins"
+      githubRefName:
+        description: "Branch name on github.com to fetch the code"
+        required: true
+        default: "main"
+      exportCommandArgs:
+        description: "Additional arguments to pass to the export command"
+        required: false
+        default: ""
+      dryRun:
+        description: "Dry run (skip publishing)"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ inputs.githubOrgName }}/${{ inputs.githubRepoName }}
+          ref: ${{ inputs.githubRefName }}
+
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+
+      - name: Install root dependencies
+        run: yarn --prefer-offline --frozen-lockfile
+
+      - name: Install plugin dependencies
+        run: |
+          cd ${{ inputs.pluginPath }}
+          yarn --prefer-offline --frozen-lockfile
+          cd -
+
+      - name: Export dynamic plugin
+        run: |
+          cd ${{ inputs.pluginPath }}
+          npx @red-hat-developer-hub/cli@latest plugin export ${{ inputs.exportCommandArgs }}
+          cd -
+
+      - name: Package plugin (npm pack)
+        id: package
+        run: |
+          cd ${{ inputs.pluginPath }}/dist-dynamic
+          npm pack --json > pack.json
+          tarball=$(jq -r '.[0].filename' pack.json)
+          integrity=$(jq -r '.[0].integrity' pack.json)
+          echo "tarball=$tarball" >> $GITHUB_OUTPUT
+          echo "integrity=$integrity" >> $GITHUB_OUTPUT
+          cd -
+
+      - name: Upload tgz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-tgz
+          path: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}
+
+      - name: Publish GitHub Release
+        if: ${{ !inputs.dryRun }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ inputs.version }}
+          name: ${{ inputs.version }}
+          makeLatest: true
+          body: |
+            ### Commit
+            ${{ steps.commit.outputs.hash }}
+
+            ### Plugin
+            Path: `${{ inputs.pluginPath }}`
+            
+            ### Integrity
+            `${{ steps.package.outputs.integrity }}`
+        artifacts: "${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}"
