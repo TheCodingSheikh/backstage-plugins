@@ -105,4 +105,4 @@ jobs:
             
             ### Integrity
             `${{ steps.package.outputs.integrity }}`
-        artifacts: "${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}"
+          artifacts: "${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}"
