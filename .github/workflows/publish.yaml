@@ -7,9 +7,6 @@ on:
         description: "Path to plugin (e.g. plugins/kubernetes-ingestor)"
         required: true
         default: "plugins/kubernetes-ingestor"
-      version:
-        description: "Release version"
-        required: true
       githubOrgName:
         description: "Organization name on github.com to fetch the code"
         required: true
@@ -81,11 +78,13 @@ jobs:
           cd ${{ inputs.pluginPath }}/dist-dynamic
           npm pack --json > pack.json
           tarball=$(jq -r '.[0].filename' pack.json)
+          version=$(jq -r '.[0].version' pack.json)
           integrity=$(jq -r '.[0].integrity' pack.json)
           name=$(jq -r '.[0].name' pack.json | sed 's/@//; s/\//-/g')
           echo "tarball=$tarball" >> $GITHUB_OUTPUT
           echo "integrity=$integrity" >> $GITHUB_OUTPUT
           echo "name=$name" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
           cd -
 
       # - name: Move dist-dynamic to plugins/{name}
@@ -114,7 +113,7 @@ jobs:
           ### Install Config
           ```yaml
           - disabled: false
-            package: "https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.name }}-${{ inputs.version }}/${{ steps.package.outputs.name }}"
+            package: "https://github.com/${{ github.repository }}/releases/download/${{ github.run_id }}-${{ github.run_attempt }/${{ steps.package.outputs.tarball }}"
             integrity: ${{ steps.package.outputs.integrity }}
             ${{ inputs.pluginConfig }}
           ```
@@ -124,8 +123,8 @@ jobs:
         if: ${{ !inputs.dryRun }}
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.package.outputs.name }}-${{ inputs.version }}
-          name: ${{ steps.package.outputs.name }}
+          tag: ${{ github.run_id }}-${{ github.run_attempt }
+          name: ${{ steps.package.outputs.name }} v${{ steps.package.outputs.version }}
           makeLatest: true
           bodyFile: "body.md"
           artifacts: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }},integrity.txt
