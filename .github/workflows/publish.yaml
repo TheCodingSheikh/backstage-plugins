@@ -112,19 +112,19 @@ jobs:
         run: |
           cat > body.md <<'EOF'
           ### Install Config
-          \`\`\`yaml
+          ```yaml
           - disabled: false
-            package: "https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/${{ steps.package.outputs.name }}"
+            package: "https://github.com/${{ github.repository }}/releases/download/${{ steps.package.outputs.name }}-${{ inputs.version }}/${{ steps.package.outputs.name }}"
             integrity: ${{ steps.package.outputs.integrity }}
             ${{ inputs.pluginConfig }}
-          \`\`\`
+          ```
           EOF
 
       - name: Publish GitHub Release
         if: ${{ !inputs.dryRun }}
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ inputs.version }}
+          tag: ${{ steps.package.outputs.name }}-${{ inputs.version }}
           name: ${{ steps.package.outputs.name }}
           makeLatest: true
           bodyFile: "body.md"
