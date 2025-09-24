@@ -32,6 +32,10 @@ on:
         description: "Dynamic plugin config to add to the release body"
         required: false
         default: ""
+      customCommand:
+        description: "Custom command to run in root before export (e.g. yarn tsc)"
+        required: false
+        default: ""
 permissions:
   contents: write
 
@@ -59,6 +63,11 @@ jobs:
 
       - name: Install root dependencies
         run: yarn install
+
+      - name: Run custom command before export
+        if: ${{ inputs.customCommand != '' }}
+        continue-on-error: true
+        run: ${{ inputs.customCommand }}
 
       - name: Install plugin dependencies
         run: |
