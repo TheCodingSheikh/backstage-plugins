@@ -58,12 +58,12 @@ jobs:
           cache: "yarn"
 
       - name: Install root dependencies
-        run: yarn --immutable --immutable-cache
+        run: yarn install
 
       - name: Install plugin dependencies
         run: |
           cd ${{ inputs.pluginPath }}
-          yarn --immutable --immutable-cache
+          yarn install
           cd -
 
       - name: Export dynamic plugin
