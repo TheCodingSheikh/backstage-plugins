@@ -113,7 +113,7 @@ jobs:
           ### Install Config
           ```yaml
           - disabled: false
-            package: "https://github.com/${{ github.repository }}/releases/download/${{ github.run_id }}-${{ github.run_attempt }/${{ steps.package.outputs.tarball }}"
+            package: "https://github.com/${{ github.repository }}/releases/download/${{ github.run_id }}-${{ github.run_attempt }}/${{ steps.package.outputs.tarball }}"
             integrity: ${{ steps.package.outputs.integrity }}
             ${{ inputs.pluginConfig }}
           ```
@@ -123,7 +123,7 @@ jobs:
         if: ${{ !inputs.dryRun }}
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.run_id }}-${{ github.run_attempt }
+          tag: ${{ github.run_id }}-${{ github.run_attempt }}
           name: ${{ steps.package.outputs.name }} v${{ steps.package.outputs.version }}
           makeLatest: true
           bodyFile: "body.md"
