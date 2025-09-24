@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       pluginPath:
-        description: "Path to plugin (e.g. plugins/kubernetes-ingestor)"
+        description: "Path to plugin"
         required: true
-        default: "plugins/kubernetes-ingestor"
+        default: ""
       githubOrgName:
         description: "Organization name on github.com to fetch the code"
         required: true
-        default: "TheCodingSheikh"
+        default: ""
       githubRepoName:
         description: "Repository name on github.com to fetch the code"
         required: true
-        default: "backstage-plugins"
+        default: ""
       githubRefName:
         description: "Branch name on github.com to fetch the code"
         required: true
@@ -29,7 +29,7 @@ on:
         type: boolean
         default: false
       pluginConfig:
-        description: "Dynamic plugin config to add to the install config"
+        description: "Dynamic plugin config to add to the release body"
         required: false
         default: ""
 permissions:
