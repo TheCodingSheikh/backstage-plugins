@@ -58,12 +58,12 @@ jobs:
           cache: "yarn"
 
       - name: Install root dependencies
-        run: yarn --prefer-offline --frozen-lockfile
+        run: yarn --immutable --immutable-cache
 
       - name: Install plugin dependencies
         run: |
           cd ${{ inputs.pluginPath }}
-          yarn --prefer-offline --frozen-lockfile
+          yarn --immutable --immutable-cache
           cd -
 
       - name: Export dynamic plugin
