@@ -31,7 +31,10 @@ on:
         required: true
         type: boolean
         default: false
-
+      pluginConfig:
+        description: "Dynamic plugin config to add to the install config"
+        required: false
+        default: ""
 permissions:
   contents: write
 
@@ -79,30 +82,50 @@ jobs:
           npm pack --json > pack.json
           tarball=$(jq -r '.[0].filename' pack.json)
           integrity=$(jq -r '.[0].integrity' pack.json)
+          name=$(jq -r '.[0].name' pack.json | sed 's/@//; s/\//-/g')
           echo "tarball=$tarball" >> $GITHUB_OUTPUT
           echo "integrity=$integrity" >> $GITHUB_OUTPUT
+          echo "name=$name" >> $GITHUB_OUTPUT
           cd -
 
-      - name: Upload tgz artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: plugin-tgz
-          path: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}
+      # - name: Move dist-dynamic to plugins/{name}
+      #   run: |
+      #     plugin_name="${{ steps.package.outputs.name }}"
+      #     mkdir -p plugins
+      #     rm -rf "plugins/$plugin_name"
+      #     mv "${{ inputs.pluginPath }}/dist-dynamic" "plugins/$plugin_name"
+
+      # - name: Commit and push plugin directory
+      #   if: ${{ !inputs.dryRun }}
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add plugins/${{ steps.package.outputs.name }}
+      #     git commit -m "Add plugin ${{ steps.package.outputs.name }}"
+      #     git push
+
+      - name: Create integrity file
+        run: |
+          echo "${{ steps.package.outputs.integrity }}" > integrity.txt
+
+      - name: Create body.md
+        run: |
+          cat > body.md <<'EOF'
+          ### Install Config
+          \`\`\`yaml
+          - disabled: false
+            package: "https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/${{ steps.package.outputs.name }}"
+            integrity: ${{ steps.package.outputs.integrity }}
+            ${{ inputs.pluginConfig }}
+          \`\`\`
+          EOF
 
       - name: Publish GitHub Release
         if: ${{ !inputs.dryRun }}
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ inputs.version }}
-          name: ${{ inputs.version }}
+          name: ${{ steps.package.outputs.name }}
           makeLatest: true
-          body: |
-            ### Commit
-            ${{ steps.commit.outputs.hash }}
-
-            ### Plugin
-            Path: `${{ inputs.pluginPath }}`
-            
-            ### Integrity
-            `${{ steps.package.outputs.integrity }}`
-          artifacts: "${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }}"
+          bodyFile: "body.md"
+          artifacts: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }},integrity.txt
