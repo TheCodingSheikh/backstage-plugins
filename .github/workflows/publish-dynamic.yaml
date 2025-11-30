@@ -1,0 +1,139 @@
+name: "Build & Release Dynamic Plugin"
+
+on:
+  workflow_dispatch:
+    inputs:
+      pluginPath:
+        description: "Path to plugin"
+        required: true
+        default: ""
+      githubOrgName:
+        description: "Organization name on github.com to fetch the code"
+        required: true
+        default: ""
+      githubRepoName:
+        description: "Repository name on github.com to fetch the code"
+        required: true
+        default: ""
+      githubRefName:
+        description: "Branch name on github.com to fetch the code"
+        required: true
+        default: "main"
+      exportCommandArgs:
+        description: "Additional arguments to pass to the export command"
+        required: false
+        default: ""
+      dryRun:
+        description: "Dry run (skip publishing)"
+        required: true
+        type: boolean
+        default: false
+      pluginConfig:
+        description: "Dynamic plugin config to add to the release body"
+        required: false
+        default: ""
+      customCommand:
+        description: "Custom command to run in root before export (e.g. yarn tsc)"
+        required: false
+        default: ""
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ inputs.githubOrgName }}/${{ inputs.githubRepoName }}
+          ref: ${{ inputs.githubRefName }}
+
+      - name: Get commit hash
+        id: commit
+        run: echo "hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+
+      - name: Install root dependencies
+        run: yarn install
+
+      - name: Run custom command before export
+        if: ${{ inputs.customCommand != '' }}
+        continue-on-error: true
+        run: ${{ inputs.customCommand }}
+
+      - name: Install plugin dependencies
+        run: |
+          cd ${{ inputs.pluginPath }}
+          yarn install
+          cd -
+
+      - name: Export dynamic plugin
+        run: |
+          cd ${{ inputs.pluginPath }}
+          npx @red-hat-developer-hub/cli@latest plugin export ${{ inputs.exportCommandArgs }}
+          cd -
+
+      - name: Package plugin (npm pack)
+        id: package
+        run: |
+          cd ${{ inputs.pluginPath }}/dist-dynamic
+          npm pack --json > pack.json
+          tarball=$(jq -r '.[0].filename' pack.json)
+          version=$(jq -r '.[0].version' pack.json)
+          integrity=$(jq -r '.[0].integrity' pack.json)
+          name=$(jq -r '.[0].name' pack.json | sed 's/@//; s/\//-/g')
+          echo "tarball=$tarball" >> $GITHUB_OUTPUT
+          echo "integrity=$integrity" >> $GITHUB_OUTPUT
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
+          cd -
+
+      # - name: Move dist-dynamic to plugins/{name}
+      #   run: |
+      #     plugin_name="${{ steps.package.outputs.name }}"
+      #     mkdir -p plugins
+      #     rm -rf "plugins/$plugin_name"
+      #     mv "${{ inputs.pluginPath }}/dist-dynamic" "plugins/$plugin_name"
+
+      # - name: Commit and push plugin directory
+      #   if: ${{ !inputs.dryRun }}
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add plugins/${{ steps.package.outputs.name }}
+      #     git commit -m "Add plugin ${{ steps.package.outputs.name }}"
+      #     git push
+
+      - name: Create integrity file
+        run: |
+          echo "${{ steps.package.outputs.integrity }}" > integrity.txt
+
+      - name: Create body.md
+        run: |
+          cat > body.md <<'EOF'
+          ### Install Config
+          ```yaml
+          - disabled: false
+            package: "https://github.com/${{ github.repository }}/releases/download/${{ github.run_id }}-${{ github.run_attempt }}/${{ steps.package.outputs.tarball }}"
+            integrity: ${{ steps.package.outputs.integrity }}
+            ${{ inputs.pluginConfig }}
+          ```
+          EOF
+
+      - name: Publish GitHub Release
+        if: ${{ !inputs.dryRun }}
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.run_id }}-${{ github.run_attempt }}
+          name: ${{ steps.package.outputs.name }} v${{ steps.package.outputs.version }}
+          makeLatest: true
+          bodyFile: "body.md"
+          artifacts: ${{ inputs.pluginPath }}/dist-dynamic/${{ steps.package.outputs.tarball }},integrity.txt
