@@ -1,2 +1,2 @@
 export { entityScaffolderPlugin, EntityScaffolderContent } from './plugin';
-export { isEntityScaffolderAvailable } from './isEntityScaffolderAvailable';
+export { isEntityScaffolderAvailable } from './utils/isEntityScaffolderAvailable';
