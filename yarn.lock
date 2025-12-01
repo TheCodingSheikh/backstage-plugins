@@ -1810,6 +1810,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@npm:^2.9.0":
+  version: 2.9.0
+  resolution: "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor@npm:2.9.0"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.4.4"
+    "@backstage/catalog-client": "npm:^1.12.0"
+    "@backstage/catalog-model": "npm:^1.7.5"
+    "@backstage/plugin-catalog-node": "npm:^1.19.1"
+    "@backstage/plugin-events-node": "npm:^0.4.16"
+    "@backstage/plugin-notifications-common": "npm:^0.1.1"
+    "@backstage/plugin-notifications-node": "npm:^0.2.20"
+  checksum: 10c0/3f150fa54fe1d7b57a8a9870671a302c682c532d50cdc82c593bd739d08e1215dab640856bdead068e03571ef9327c94de0817ee2a582bf01032cccb1dad3274
+  languageName: node
+  linkType: hard
+
+"@backstage-community/plugin-scaffolder-backend-module-annotator@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "@backstage-community/plugin-scaffolder-backend-module-annotator@npm:2.11.0"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.4.4"
+    "@backstage/plugin-scaffolder-node": "npm:^0.12.0"
+    fs-extra: "npm:^11.2.0"
+    lodash: "npm:^4.17.21"
+    yaml: "npm:^2.0.0"
+  checksum: 10c0/58dafb52c0475fac594e5a3ec40196591062f59894e3d46b544c0774ca09c3f86405863c73e3718ff5cab0619f7368ac4e9b9a71f6b1edf35e59eed72ca2ae4a
+  languageName: node
+  linkType: hard
+
 "@backstage/app-defaults@npm:^1.7.2":
   version: 1.7.2
   resolution: "@backstage/app-defaults@npm:1.7.2"
@@ -1959,7 +1987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/backend-plugin-api@npm:^1.5.0":
+"@backstage/backend-plugin-api@npm:^1.4.4, @backstage/backend-plugin-api@npm:^1.5.0":
   version: 1.5.0
   resolution: "@backstage/backend-plugin-api@npm:1.5.0"
   dependencies:
@@ -1981,7 +2009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/catalog-client@npm:^1.12.1":
+"@backstage/catalog-client@npm:^1.12.0, @backstage/catalog-client@npm:^1.12.1":
   version: 1.12.1
   resolution: "@backstage/catalog-client@npm:1.12.1"
   dependencies:
@@ -1993,7 +2021,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/catalog-model@npm:^1.5.0, @backstage/catalog-model@npm:^1.7.6":
+"@backstage/catalog-model@npm:^1.5.0, @backstage/catalog-model@npm:^1.7.5, @backstage/catalog-model@npm:^1.7.6":
   version: 1.7.6
   resolution: "@backstage/catalog-model@npm:1.7.6"
   dependencies:
@@ -2192,7 +2220,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/config@npm:^1.2.0, @backstage/config@npm:^1.3.6":
+"@backstage/config@npm:^1.2.0, @backstage/config@npm:^1.3.5, @backstage/config@npm:^1.3.6":
   version: 1.3.6
   resolution: "@backstage/config@npm:1.3.6"
   dependencies:
@@ -2950,7 +2978,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-catalog-node@npm:^1.20.0":
+"@backstage/plugin-catalog-node@npm:^1.19.1, @backstage/plugin-catalog-node@npm:^1.20.0":
   version: 1.20.0
   resolution: "@backstage/plugin-catalog-node@npm:1.20.0"
   dependencies:
@@ -3055,7 +3083,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-events-node@npm:^0.4.17":
+"@backstage/plugin-events-node@npm:^0.4.16, @backstage/plugin-events-node@npm:^0.4.17":
   version: 0.4.17
   resolution: "@backstage/plugin-events-node@npm:0.4.17"
   dependencies:
@@ -3222,6 +3250,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@backstage/plugin-notifications-common@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@backstage/plugin-notifications-common@npm:0.1.1"
+  dependencies:
+    "@backstage/config": "npm:^1.3.5"
+    "@backstage/types": "npm:^1.2.2"
+    "@material-ui/icons": "npm:^4.9.1"
+  checksum: 10c0/966bda56f48da957b4950e59e5e8307fe685287d61cdcd3e1723a8e02f4413b51a2ec20e67aaf392ff7dcdef283526b5717e59fbc8d87f43cbf0f6fa39b8feca
+  languageName: node
+  linkType: hard
+
 "@backstage/plugin-notifications-common@npm:^0.2.0":
   version: 0.2.0
   resolution: "@backstage/plugin-notifications-common@npm:0.2.0"
@@ -3233,7 +3272,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-notifications-node@npm:^0.2.21":
+"@backstage/plugin-notifications-node@npm:^0.2.20, @backstage/plugin-notifications-node@npm:^0.2.21":
   version: 0.2.21
   resolution: "@backstage/plugin-notifications-node@npm:0.2.21"
   dependencies:
@@ -3642,7 +3681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-scaffolder-node@npm:^0.12.1":
+"@backstage/plugin-scaffolder-node@npm:^0.12.0, @backstage/plugin-scaffolder-node@npm:^0.12.1":
   version: 0.12.1
   resolution: "@backstage/plugin-scaffolder-node@npm:0.12.1"
   dependencies:
@@ -15135,6 +15174,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "backend@workspace:packages/backend"
   dependencies:
+    "@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor": "npm:^2.9.0"
+    "@backstage-community/plugin-scaffolder-backend-module-annotator": "npm:^2.11.0"
     "@backstage/backend-defaults": "npm:^0.13.1"
     "@backstage/cli": "npm:^0.34.5"
     "@backstage/config": "npm:^1.3.6"

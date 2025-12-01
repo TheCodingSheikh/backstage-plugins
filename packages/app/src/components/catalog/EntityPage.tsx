@@ -208,15 +208,10 @@ const websiteEntityPage = (
 
     <EntityLayout.Route
       path="/entity-scaffolder"
-      title="scaffolder"
+      title="manage"
       if={isEntityScaffolderAvailable}
     >
-      <EntityScaffolderContent
-        templateName="example-nodejs-template"
-        templateNamespace = 'default'
-        buildInitialState={entity => (JSON.parse(entity.metadata.annotations?.['backstage.io/last-applied-configuration']))}
-        // optional
-      />
+      <EntityScaffolderContent/>
     </EntityLayout.Route>
 
     <EntityLayout.Route

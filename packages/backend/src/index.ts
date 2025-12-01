@@ -63,4 +63,12 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 backend.add(import('@backstage/plugin-notifications-backend'));
 backend.add(import('@backstage/plugin-signals-backend'));
 
+backend.add(
+  import(
+    '@backstage-community/plugin-catalog-backend-module-scaffolder-relation-processor'
+  ),
+);
+backend.add(
+  import('@backstage-community/plugin-scaffolder-backend-module-annotator'),
+);
 backend.start();

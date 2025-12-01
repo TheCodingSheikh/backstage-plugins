@@ -1,0 +1,156 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
+kind: Template
+metadata:
+  name: entity-scaffolder-template
+  title: Example Entity Scaffolder
+  description: An example template for the scaffolder that creates a simple Node.js service
+spec:
+  owner: user:guest
+  type: service
+
+  # These parameters are used to generate the input form in the frontend, and are
+  # used to gather input data for the execution of the template.
+  parameters:
+    - title: General Info
+      required: [projectName, services]
+      properties:
+        projectName:
+          title: Project Name
+          description: Enter the monorepo name
+          type: string
+
+        projectMetadata:
+          title: Additional Metadata
+          type: object
+          properties:
+            environment:
+              title: Environment
+              type: string
+              enum: [dev, staging, prod]
+            region:
+              title: Region
+              type: string
+              enum: [us-east1, eu-west1, sa-riyadh]
+            tags:
+              title: Tags
+              type: array
+              description: Project tags
+              items:
+                type: string
+
+        services:
+          title: Services (array of objects)
+          type: array
+          ui:options:
+            addLabel: Add Service
+          items:
+            type: object
+            required: [name, port]
+            properties:
+              name:
+                title: Service Name
+                type: string
+
+              port:
+                title: Port
+                type: number
+
+              language:
+                title: Language
+                type: string
+                enum: [nodejs, python, go]
+
+              database:
+                title: Database Config
+                type: object
+                properties:
+                  enabled:
+                    title: Enable DB?
+                    type: boolean
+                  engine:
+                    title: Engine
+                    type: string
+                    enum: [postgres, mysql, mongodb]
+                    ui:widget: select
+                  replicas:
+                    title: Replicas
+                    type: number
+                  users:
+                    title: Database Users
+                    type: array
+                    items:
+                      type: object
+                      required: [username]
+                      properties:
+                        username:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                            enum: [read, write, admin]
+
+        enableGithub:
+          title: Publish to GitHub?
+          type: boolean
+          default: true
+
+        githubRepo:
+          title: GitHub repo URL
+          type: string
+          ui:options:
+            allowedHosts:
+              - github.com
+          ui:field: RepoUrlPicker
+          description: Required only if enabled
+
+    - title: CI/CD Options
+      properties:
+        enableCI:
+          title: Include CI workflow?
+          type: boolean
+        ciMatrix:
+          title: Supported Node Versions (if CI enabled)
+          type: array
+          items:
+            type: number
+          ui:options:
+            addLabel: Add Version
+
+  steps:
+
+    - id: fetch-base
+      name: Fetch Base
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          name: ${{ parameters.name }}
+          params: ${{ parameters }}
+
+
+    - id: log
+      name: Parse Repo URL
+      action: debug:log
+      input:
+        message: ${{ parameters | dump }}
+
+    # - id: log-u
+    #   name: Parse Entity Reference
+    #   action: debug:log
+    #   input:
+    #     message: ${{ parameters.owner | parseEntityRef }}
+
+    # - id: log-2
+    #   name: Pick
+    #   action: debug:log
+    #   input:
+    #     message: ${{ parameters.owner | parseEntityRef | pick('name') }}
+        
+  output:
+    text:
+      - title: More information
+        content: |
+          DUMP: ${{ parameters | dump }}
+          JSON: ${{ parameters | json }}

@@ -12,8 +12,6 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: example-website
-  annotations:
-    backstage.io/last-applied-configuration: '{"name":"hi"}'
 spec:
   type: website
   lifecycle: experimental

@@ -1,0 +1,13 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: example-enity-scaffolder
+  annotations:
+    backstage.io/last-applied-configuration: '{"projectMetadata":{"tags":["sdd","sdsd sd"],"environment":"staging","region":"eu-west1"},"services":[{"database":{"users":[{"permissions":["write","read"],"username":"323"},{"permissions":[],"username":"dddss"}],"enabled":true,"engine":"mysql","replicas":4},"name":"adad","port":2324,"language":"python"}],"enableGithub":true,"githubRepo":"github.com?owner=adda&repo=dadssdsd","projectName":"dsd","ciMatrix":[5],"enableCI":true}'
+    backstage.io/scaffolder-template: template:entity-scaffolder-template
+spec:
+  type: website
+  lifecycle: experimental
+  owner: guests
+  system: examples
+  providesApis: [example-grpc-api]
