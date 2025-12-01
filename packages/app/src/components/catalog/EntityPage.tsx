@@ -161,6 +161,14 @@ const serviceEntityPage = (
     </EntityLayout.Route>
 
     <EntityLayout.Route
+      path="/entity-scaffolder"
+      title="manage"
+      if={isEntityScaffolderAvailable}
+    >
+      <EntityScaffolderContent/>
+    </EntityLayout.Route>
+    
+    <EntityLayout.Route
       path="/kubernetes"
       title="Kubernetes"
       if={isKubernetesAvailable}

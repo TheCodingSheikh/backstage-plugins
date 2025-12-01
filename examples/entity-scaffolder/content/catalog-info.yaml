@@ -3,7 +3,9 @@ kind: Component
 metadata:
   name: ${{ values.name | dump }}
   annotations:
-    backstage.io/last-applied-configuration: ${{ values.params | dump }}
+    backstage.io/last-applied-configuration: '${{ values.params | dump }}'
+    backstage.io/scaffolder-template: template:entity-scaffolder-template
+    
 spec:
   type: service
   owner: user:guest

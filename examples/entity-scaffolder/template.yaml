@@ -12,114 +12,33 @@ spec:
   # These parameters are used to generate the input form in the frontend, and are
   # used to gather input data for the execution of the template.
   parameters:
-    - title: General Info
-      required: [projectName, services]
+    - title: Fill in some steps
+      required:
+        - name
       properties:
-        projectName:
-          title: Project Name
-          description: Enter the monorepo name
+        name:
+          title: Name
           type: string
-
-        projectMetadata:
-          title: Additional Metadata
-          type: object
-          properties:
-            environment:
-              title: Environment
-              type: string
-              enum: [dev, staging, prod]
-            region:
-              title: Region
-              type: string
-              enum: [us-east1, eu-west1, sa-riyadh]
-            tags:
-              title: Tags
-              type: array
-              description: Project tags
-              items:
-                type: string
-
-        services:
-          title: Services (array of objects)
-          type: array
+          description: Unique name of the component
+          ui:autofocus: true
           ui:options:
-            addLabel: Add Service
-          items:
-            type: object
-            required: [name, port]
-            properties:
-              name:
-                title: Service Name
-                type: string
-
-              port:
-                title: Port
-                type: number
-
-              language:
-                title: Language
-                type: string
-                enum: [nodejs, python, go]
-
-              database:
-                title: Database Config
-                type: object
-                properties:
-                  enabled:
-                    title: Enable DB?
-                    type: boolean
-                  engine:
-                    title: Engine
-                    type: string
-                    enum: [postgres, mysql, mongodb]
-                    ui:widget: select
-                  replicas:
-                    title: Replicas
-                    type: number
-                  users:
-                    title: Database Users
-                    type: array
-                    items:
-                      type: object
-                      required: [username]
-                      properties:
-                        username:
-                          type: string
-                        permissions:
-                          type: array
-                          items:
-                            type: string
-                            enum: [read, write, admin]
-
-        enableGithub:
-          title: Publish to GitHub?
-          type: boolean
-          default: true
-
-        githubRepo:
-          title: GitHub repo URL
+            rows: 5
+    - title: Choose a location
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
           type: string
+          ui:field: RepoUrlPicker
           ui:options:
             allowedHosts:
               - github.com
-          ui:field: RepoUrlPicker
-          description: Required only if enabled
 
-    - title: CI/CD Options
-      properties:
-        enableCI:
-          title: Include CI workflow?
-          type: boolean
-        ciMatrix:
-          title: Supported Node Versions (if CI enabled)
-          type: array
-          items:
-            type: number
-          ui:options:
-            addLabel: Add Version
-
+  # These steps are executed in the scaffolder backend, using data that we gathered
+  # via the parameters above.
   steps:
-
+    # Each step executes an action, in this case one templates files into the working directory.
     - id: fetch-base
       name: Fetch Base
       action: fetch:template
@@ -129,28 +48,25 @@ spec:
           name: ${{ parameters.name }}
           params: ${{ parameters }}
 
-
-    - id: log
-      name: Parse Repo URL
-      action: debug:log
+    # This step publishes the contents of the working directory to GitHub.
+    # If you or your organization prefer another default branch name over 'main'
+    # you can change that here.
+    - id: publish
+      name: Publish
+      action: publish:github:pull-request
       input:
-        message: ${{ parameters | dump }}
+        title: hghgh
+        description: This is ${{ parameters.name }}
+        repoUrl: ${{ parameters.repoUrl }}
+        branchName: 'hhhh'
 
-    # - id: log-u
-    #   name: Parse Entity Reference
-    #   action: debug:log
-    #   input:
-    #     message: ${{ parameters.owner | parseEntityRef }}
+    # The final step is to register our new component in the catalog.
 
-    # - id: log-2
-    #   name: Pick
-    #   action: debug:log
-    #   input:
-    #     message: ${{ parameters.owner | parseEntityRef | pick('name') }}
-        
+  # Outputs are displayed to the user after a successful execution of the template.
   output:
-    text:
-      - title: More information
-        content: |
-          DUMP: ${{ parameters | dump }}
-          JSON: ${{ parameters | json }}
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
