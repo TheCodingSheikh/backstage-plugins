@@ -1,0 +1,1 @@
+export { EntityScaffolderContent } from './EntityScaffolderContent';

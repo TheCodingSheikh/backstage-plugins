@@ -48,6 +48,7 @@ import {
   RELATION_HAS_PART,
   RELATION_PART_OF,
   RELATION_PROVIDES_API,
+  stringifyEntityRef,
 } from '@backstage/catalog-model';
 
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
@@ -57,6 +58,12 @@ import {
   EntityKubernetesContent,
   isKubernetesAvailable,
 } from '@backstage/plugin-kubernetes';
+
+import {
+  EntityScaffolderContent,
+  isEntityScaffolderAvailable,
+} from '@internal/backstage-plugin-entity-scaffolder';
+
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -200,6 +207,19 @@ const websiteEntityPage = (
     </EntityLayout.Route>
 
     <EntityLayout.Route
+      path="/entity-scaffolder"
+      title="scaffolder"
+      if={isEntityScaffolderAvailable}
+    >
+      <EntityScaffolderContent
+        templateName="example-nodejs-template"
+        templateNamespace = 'default'
+        buildInitialState={entity => (JSON.parse(entity.metadata.annotations?.['backstage.io/last-applied-configuration']))}
+        // optional
+      />
+    </EntityLayout.Route>
+
+    <EntityLayout.Route
       path="/kubernetes"
       title="Kubernetes"
       if={isKubernetesAvailable}
@@ -240,6 +260,7 @@ const defaultEntityPage = (
     <EntityLayout.Route path="/docs" title="Docs">
       {techdocsContent}
     </EntityLayout.Route>
+    
   </EntityLayout>
 );
 
