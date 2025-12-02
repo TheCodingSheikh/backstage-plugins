@@ -31,9 +31,13 @@ export const EntityScaffolderContent = () => {
   const entityScaffolderTemplateAnnotationValue =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION];
 
-  const initialState = 
-    entityScaffolderConfigAnnotationValue ? JSON.parse(entityScaffolderConfigAnnotationValue) : {};
-    
+  const initialState = {
+    ...(entityScaffolderConfigAnnotationValue
+      ? JSON.parse(entityScaffolderConfigAnnotationValue)
+      : {}),
+    firstRun: false,
+  };
+
   const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
 
   if (
