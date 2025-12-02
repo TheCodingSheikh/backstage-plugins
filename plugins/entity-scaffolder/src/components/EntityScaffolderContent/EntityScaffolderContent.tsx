@@ -38,11 +38,11 @@ export const EntityScaffolderContent = () => {
     firstRun: false,
   };
 
-  const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
-
   if (
     entityScaffolderConfigAnnotationValue && entityScaffolderTemplateAnnotationValue
   ) {
+    const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
+
     return (
       <SecretsContextProvider>
         <EmbeddedScaffolderWorkflow

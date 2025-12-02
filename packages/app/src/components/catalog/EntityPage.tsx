@@ -47,8 +47,7 @@ import {
   RELATION_DEPENDS_ON,
   RELATION_HAS_PART,
   RELATION_PART_OF,
-  RELATION_PROVIDES_API,
-  stringifyEntityRef,
+  RELATION_PROVIDES_API
 } from '@backstage/catalog-model';
 
 import { TechDocsAddons } from '@backstage/plugin-techdocs-react';
@@ -62,7 +61,7 @@ import {
 import {
   EntityScaffolderContent,
   isEntityScaffolderAvailable,
-} from '@internal/backstage-plugin-entity-scaffolder';
+} from '@thecodingsheikh/backstage-plugin-entity-scaffolder';
 
 
 const techdocsContent = (

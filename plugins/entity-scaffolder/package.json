@@ -1,18 +1,19 @@
 {
-  "name": "@internal/backstage-plugin-entity-scaffolder",
+  "name": "@thecodingsheikh/backstage-plugin-entity-scaffolder",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "private": true,
   "main": "src/index.ts",
   "types": "src/index.ts",
   "publishConfig": {
-    "access": "public",
-    "main": "dist/index.esm.js",
-    "types": "dist/index.d.ts"
+    "access": "public"
   },
   "backstage": {
     "role": "frontend-plugin",
-    "pluginId": "entity-scaffolder"
+    "pluginId": "entity-scaffolder",
+    "pluginPackages": [
+      "@thecodingsheikh/backstage-plugin-entity-scaffolder"
+    ]
   },
   "sideEffects": false,
   "scripts": {
