@@ -17,6 +17,22 @@ import {
   ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION 
 } from '../../annotations';
 
+import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
+import { 
+  EntityPickerFieldExtension, 
+  RepoUrlPickerFieldExtension,
+  EntityNamePickerFieldExtension,
+  MultiEntityPickerFieldExtension,
+  OwnerPickerFieldExtension,
+  MyGroupsPickerFieldExtension,
+  OwnedEntityPickerFieldExtension,
+  EntityTagsPickerFieldExtension,
+  RepoBranchPickerFieldExtension
+ } from '@backstage/plugin-scaffolder';
+import { SelectFieldFromApiExtension } from '@roadiehq/plugin-scaffolder-frontend-module-http-request-field';
+
+
+
 /**
  * Use templates from within the EntityPage.
  *
@@ -53,6 +69,19 @@ export const EntityScaffolderContent = () => {
             <h2>{error?.message ?? 'Error running workflow'}</h2>
           )}
         >
+        <ScaffolderFieldExtensions>
+          <RepoUrlPickerFieldExtension />
+          <EntityPickerFieldExtension />
+          <SelectFieldFromApiExtension />
+          <EntityNamePickerFieldExtension />
+          <MultiEntityPickerFieldExtension />
+          <OwnerPickerFieldExtension />
+          <MyGroupsPickerFieldExtension />
+          <OwnedEntityPickerFieldExtension />
+          <EntityTagsPickerFieldExtension />
+          <RepoBranchPickerFieldExtension />
+          <SelectFieldFromApiExtension />
+        </ScaffolderFieldExtensions>
         </EmbeddedScaffolderWorkflow>
       </SecretsContextProvider>
     );

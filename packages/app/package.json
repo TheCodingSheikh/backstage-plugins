@@ -43,6 +43,7 @@
     "@backstage/ui": "^0.9.0",
     "@material-ui/core": "^4.12.2",
     "@material-ui/icons": "^4.9.1",
+    "@roadiehq/plugin-scaffolder-frontend-module-http-request-field": "^2.3.0",
     "@thecodingsheikh/backstage-plugin-entity-scaffolder": "^0.1.0",
     "react": "^18.0.2",
     "react-dom": "^18.0.2",
