@@ -9,7 +9,7 @@ This plugin embeds a Backstage Scaffolder workflow into an entity's page, allowi
 1.  Install the package in your Backstage app:
 
     ```bash
-    yarn --cwd packages/app add @@thecodingsheikh/backstage-plugin-entity-scaffolder
+    yarn --cwd packages/app add @thecodingsheikh/backstage-plugin-entity-scaffolder
     ```
 
 2.  Add the scaffolder tab to your entity page in `packages/app/src/components/catalog/EntityPage.tsx`:
@@ -168,8 +168,8 @@ spec:
       if: ${{ parameters.firstRun == false }}
       action: publish:github:pull-request
       input:
-        title: hghgh
+        title: test
         description: This is ${{ parameters.name }}
         repoUrl: ${{ parameters.repoUrl }}
-        branchName: 'hhhh'
+        branchName: 'test'
 ```
