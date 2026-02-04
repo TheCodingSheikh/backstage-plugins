@@ -1,29 +1,78 @@
 apiVersion: scaffolder.backstage.io/v1beta3
-# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
 kind: Template
 metadata:
   name: entity-scaffolder-template
   title: Example Entity Scaffolder
-  description: An example template for the scaffolder that creates a simple Node.js service
+  description: A comprehensive template for testing entity scaffolder with various field types
 spec:
   owner: user:guest
   type: service
 
-  # These parameters are used to generate the input form in the frontend, and are
-  # used to gather input data for the execution of the template.
   parameters:
-    - title: Fill in some steps
+    # Step 1: Basic Information
+    - title: Basic Information
       required:
         - name
+        - description
       properties:
         name:
-          title: Name
+          title: Component Name
           type: string
           description: Unique name of the component
           ui:autofocus: true
+        description:
+          title: Description
+          type: string
+          description: A brief description of this component
+          ui:widget: textarea
           ui:options:
-            rows: 5
-    - title: Choose a location
+            rows: 3
+        environment:
+          title: Environment
+          type: string
+          description: Target deployment environment
+          default: development
+          enum:
+            - development
+            - staging
+            - production
+        priority:
+          title: Priority Level
+          type: number
+          description: Priority from 1-10
+          default: 5
+          minimum: 1
+          maximum: 10
+
+    # Step 2: Owner & Team Details
+    - title: Owner & Team Details
+      required:
+        - owner
+      properties:
+        owner:
+          title: Owner
+          type: string
+          description: The team or user that owns this component
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: [Group, User]
+        teamTags:
+          title: Team Tags
+          type: array
+          description: Tags to categorize this component
+          ui:field: EntityTagsPicker
+        relatedEntities:
+          title: Related Entities
+          type: array
+          description: Other entities related to this component
+          ui:field: MultiEntityPicker
+          ui:options:
+            catalogFilter:
+              kind: [Component, API]
+
+    # Step 3: Repository Configuration
+    - title: Repository Configuration
       required:
         - repoUrl
       properties:
@@ -34,11 +83,122 @@ spec:
           ui:options:
             allowedHosts:
               - github.com
+        repoBranch:
+          title: Target Branch
+          type: string
+          description: Branch to create PR against
+          ui:field: RepoBranchPicker
+          ui:options: {}
+        visibility:
+          title: Repository Visibility
+          type: string
+          default: private
+          enum:
+            - public
+            - private
+            - internal
 
-  # These steps are executed in the scaffolder backend, using data that we gathered
-  # via the parameters above.
+    # Step 4: Technical Configuration
+    - title: Technical Configuration
+      properties:
+        language:
+          title: Primary Language
+          type: string
+          default: typescript
+          enum:
+            - typescript
+            - javascript
+            - python
+            - go
+            - java
+          enumNames:
+            - TypeScript
+            - JavaScript
+            - Python
+            - Go
+            - Java
+        framework:
+          title: Framework
+          type: string
+          enum:
+            - react
+            - angular
+            - vue
+            - express
+            - fastapi
+            - spring
+        enableDocker:
+          title: Enable Docker
+          type: boolean
+          default: true
+          description: Include Dockerfile and docker-compose
+        enableCI:
+          title: Enable CI/CD
+          type: boolean
+          default: true
+          description: Include GitHub Actions workflows
+        ports:
+          title: Service Ports
+          type: array
+          items:
+            type: number
+          default: [3000]
+          description: List of ports exposed by this service
+
+    # Step 5: Advanced Options
+    - title: Advanced Options
+      properties:
+        metadata:
+          title: Additional Metadata
+          type: object
+          description: Custom key-value metadata
+          properties:
+            costCenter:
+              title: Cost Center
+              type: string
+            region:
+              title: Region
+              type: string
+              enum:
+                - us-east-1
+                - us-west-2
+                - eu-west-1
+                - ap-southeast-1
+            tier:
+              title: Service Tier
+              type: string
+              enum:
+                - tier1
+                - tier2
+                - tier3
+        dependencies:
+          title: Dependencies
+          type: array
+          description: List of dependency configurations
+          items:
+            type: object
+            properties:
+              name:
+                title: Dependency Name
+                type: string
+              version:
+                title: Version
+                type: string
+              optional:
+                title: Optional
+                type: boolean
+                default: false
+        secretsEnabled:
+          title: Enable Secrets Management
+          type: boolean
+          default: false
+        debugMode:
+          title: Debug Mode
+          type: boolean
+          default: false
+          description: Enable verbose logging
+
   steps:
-    # Each step executes an action, in this case one templates files into the working directory.
     - id: fetch-base
       name: Fetch Base
       action: fetch:template
@@ -46,27 +206,35 @@ spec:
         url: ./content
         values:
           name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
           params: ${{ parameters }}
 
-    # This step publishes the contents of the working directory to GitHub.
-    # If you or your organization prefer another default branch name over 'main'
-    # you can change that here.
     - id: publish
       name: Publish
+      if: ${{ parameters.firstRun != false }}
+      action: publish:github
+      input:
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: 'main'
+
+    - id: pull-request
+      name: Create Pull Request
+      if: ${{ parameters.firstRun == false }}
       action: publish:github:pull-request
       input:
-        title: hghgh
-        description: This is ${{ parameters.name }}
+        title: "Update ${{ parameters.name }} configuration"
+        description: |
+          Updates to ${{ parameters.name }}
+          
+          Environment: ${{ parameters.environment }}
+          Owner: ${{ parameters.owner }}
         repoUrl: ${{ parameters.repoUrl }}
-        branchName: 'hhhh'
+        branchName: 'update-${{ parameters.name }}'
 
-    # The final step is to register our new component in the catalog.
-
-  # Outputs are displayed to the user after a successful execution of the template.
   output:
     links:
       - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps['register'].output.entityRef }}
+      - title: Pull Request
+        url: ${{ steps['pull-request'].output.remoteUrl }}

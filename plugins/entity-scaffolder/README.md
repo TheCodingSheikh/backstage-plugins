@@ -50,6 +50,7 @@ To enable the Scaffolder tab on an entity page, add the following annotations to
 
 -   **`backstage.io/scaffolder-template`**: The entity reference for the Scaffolder template to use.
 -   **`backstage.io/last-applied-configuration`**: A JSON object string representing the template parameter values to to pass to the Scaffolder workflow.
+-   **`backstage.io/immutable-fields`** *(optional)*: A comma-separated list of field names that should be disabled (non-editable) when the form is rendered from an entity page. This is useful for fields like `name` or `repoUrl` that should not change after initial creation.
 
 ### Example
 
@@ -63,11 +64,14 @@ metadata:
   annotations:
     backstage.io/last-applied-configuration: '{"name":"my-service","repoUrl":"github.com?owner=thecodingsheikh&repo=backstage-plugins","firstRun":false}'
     backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/immutable-fields: 'name,repoUrl'
 spec:
   type: service
   lifecycle: experimental
   owner: team-a
 ```
+
+> **Note:** The `immutable-fields` annotation applies `ui:disabled` to the specified fields, which works with both standard form fields and custom field extensions like `RepoUrlPicker`, `OwnerPicker`, etc.
 It is best to add them automatically from a scaffolder template, for example
 
 ```yaml

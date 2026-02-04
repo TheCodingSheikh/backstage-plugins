@@ -3,11 +3,43 @@ kind: Component
 metadata:
   name: example-enity-scaffolder
   annotations:
-    backstage.io/last-applied-configuration: '{"projectMetadata":{"tags":["sdd","sdsd sd"],"environment":"staging","region":"eu-west1"},"services":[{"database":{"users":[{"permissions":["write","read"],"username":"323"},{"permissions":[],"username":"dddss"}],"enabled":true,"engine":"mysql","replicas":4},"name":"adad","port":2324,"language":"python"}],"enableGithub":true,"githubRepo":"github.com?owner=adda&repo=dadssdsd","projectName":"dsd","ciMatrix":[5],"enableCI":true}'
+    # Test configuration with various field values
+    backstage.io/last-applied-configuration: |
+      {
+        "name": "my-test-service",
+        "description": "A sample service for testing the entity scaffolder plugin",
+        "environment": "staging",
+        "priority": 7,
+        "owner": "group:default/engineering",
+        "teamTags": ["backend", "core", "api"],
+        "visibility": "private",
+        "language": "typescript",
+        "framework": "express",
+        "enableDocker": true,
+        "enableCI": true,
+        "ports": [3000, 8080],
+        "metadata": {
+          "costCenter": "CC-12345",
+          "region": "us-east-1",
+          "tier": "tier1"
+        },
+        "dependencies": [
+          {"name": "express", "version": "4.18.0", "optional": false},
+          {"name": "lodash", "version": "4.17.21", "optional": true}
+        ],
+        "secretsEnabled": true,
+        "debugMode": false
+      }
     backstage.io/scaffolder-template: template:entity-scaffolder-template
+    # Test immutable fields - these should be disabled in the form:
+    # - name: basic text field
+    # - environment: enum/select field
+    # - owner: OwnerPicker custom field
+    # - repoUrl: RepoUrlPicker custom field
+    # - language: enum field
+    # - enableDocker: boolean field
+    backstage.io/immutable-fields: 'name,environment,owner,language,enableDocker'
 spec:
   type: website
   lifecycle: experimental
   owner: guests
-  system: examples
-  providesApis: [example-grpc-api]

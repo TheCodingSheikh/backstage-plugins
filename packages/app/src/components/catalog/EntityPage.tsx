@@ -61,7 +61,7 @@ import {
 import {
   EntityScaffolderContent,
   isEntityScaffolderAvailable,
-} from '@thecodingsheikh/backstage-plugin-entity-scaffolder';
+} from '../../../../../plugins/entity-scaffolder/src';
 
 
 const techdocsContent = (
@@ -164,9 +164,9 @@ const serviceEntityPage = (
       title="manage"
       if={isEntityScaffolderAvailable}
     >
-      <EntityScaffolderContent/>
+      <EntityScaffolderContent />
     </EntityLayout.Route>
-    
+
     <EntityLayout.Route
       path="/kubernetes"
       title="Kubernetes"
@@ -218,7 +218,7 @@ const websiteEntityPage = (
       title="manage"
       if={isEntityScaffolderAvailable}
     >
-      <EntityScaffolderContent/>
+      <EntityScaffolderContent />
     </EntityLayout.Route>
 
     <EntityLayout.Route
@@ -262,7 +262,7 @@ const defaultEntityPage = (
     <EntityLayout.Route path="/docs" title="Docs">
       {techdocsContent}
     </EntityLayout.Route>
-    
+
   </EntityLayout>
 );
 
