@@ -12873,7 +12873,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@thecodingsheikh/backstage-plugin-entity-scaffolder@npm:^0.1.0, @thecodingsheikh/backstage-plugin-entity-scaffolder@workspace:plugins/entity-scaffolder":
+"@thecodingsheikh/backstage-plugin-entity-scaffolder@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@thecodingsheikh/backstage-plugin-entity-scaffolder@npm:0.1.0"
+  dependencies:
+    "@backstage/core-components": "npm:^0.18.3"
+    "@backstage/core-plugin-api": "npm:^1.12.0"
+    "@backstage/theme": "npm:^0.7.0"
+    "@frontside/backstage-plugin-scaffolder-workflow": "npm:^0.10.2"
+    "@material-ui/core": "npm:^4.9.13"
+    "@material-ui/icons": "npm:^4.9.1"
+    "@material-ui/lab": "npm:^4.0.0-alpha.61"
+    react-use: "npm:^17.2.4"
+  peerDependencies:
+    react: ^16.13.1 || ^17.0.0 || ^18.0.0
+  checksum: 10c0/7e76cf603a4ff7bafdb664989896f6bc8fe9c1c0d86d57dbebfc557b05193bd2f38826b8701436cc22d462b28c9d3f70348aeafab7a69043591e0b36a852d8b1
+  languageName: node
+  linkType: hard
+
+"@thecodingsheikh/backstage-plugin-entity-scaffolder@workspace:plugins/entity-scaffolder":
   version: 0.0.0-use.local
   resolution: "@thecodingsheikh/backstage-plugin-entity-scaffolder@workspace:plugins/entity-scaffolder"
   dependencies:
