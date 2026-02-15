@@ -13843,7 +13843,7 @@ __metadata:
     "@backstage/cli": "npm:^0.34.5"
     "@backstage/plugin-catalog-common": "npm:^1.1.2"
     "@backstage/plugin-catalog-node": "npm:^1.15.1"
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "npm:^1.0.0"
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "npm:^1.0.2"
   languageName: unknown
   linkType: soft
 
@@ -13891,7 +13891,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@thecodingsheikh/backstage-plugin-multi-owner-common@npm:^1.0.0, @thecodingsheikh/backstage-plugin-multi-owner-common@workspace:plugins/multi-owner/multi-owner-common":
+"@thecodingsheikh/backstage-plugin-multi-owner-common@npm:^1.0.2, @thecodingsheikh/backstage-plugin-multi-owner-common@workspace:plugins/multi-owner/multi-owner-common":
   version: 0.0.0-use.local
   resolution: "@thecodingsheikh/backstage-plugin-multi-owner-common@workspace:plugins/multi-owner/multi-owner-common"
   dependencies:
@@ -13918,7 +13918,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "npm:^1.0.0"
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "npm:^1.0.2"
     msw: "npm:^1.0.0"
     react: "npm:^16.13.1 || ^17.0.0 || ^18.0.0"
     react-use: "npm:^17.2.4"
