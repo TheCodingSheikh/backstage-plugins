@@ -26,12 +26,15 @@ export function parseOwners(raw: unknown): MultiOwnerEntry[] {
         } else if (
             typeof entry === 'object' &&
             entry !== null &&
+            // @ts-ignore
             typeof entry.name === 'string'
         ) {
+            // @ts-ignore
             const trimmedName = entry.name.trim();
             if (trimmedName.length > 0) {
                 result.push({
                     name: trimmedName,
+                    // @ts-ignore
                     ...(entry.role ? { role: entry.role.trim() } : {}),
                 });
             }

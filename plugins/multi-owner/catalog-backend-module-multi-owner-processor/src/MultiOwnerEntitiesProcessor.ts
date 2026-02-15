@@ -13,8 +13,8 @@ import {
 } from '@backstage/catalog-model';
 import {
     MULTI_OWNER_ANNOTATION,
-    parseOwners,
-} from '@thecodingsheikh/backstage-plugin-multi-owner-common';
+} from './utils/constants';
+import { parseOwners } from './utils/parseOwners';
 
 /**
  * A catalog processor that reads `spec.owners` from entities and emits

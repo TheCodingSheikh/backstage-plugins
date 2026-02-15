@@ -4,7 +4,7 @@ import {
     RELATION_OWNED_BY,
     RELATION_OWNER_OF,
 } from '@backstage/catalog-model';
-import { MULTI_OWNER_ANNOTATION } from '@thecodingsheikh/backstage-plugin-multi-owner-common';
+import { MULTI_OWNER_ANNOTATION } from './utils/constants';
 
 const mockLocation = {
     type: 'url' as const,

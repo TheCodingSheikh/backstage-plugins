@@ -1,9 +1,7 @@
 import { useEntity } from '@backstage/plugin-catalog-react';
-import {
-    MULTI_OWNER_ANNOTATION,
-    parseOwners,
-} from '@thecodingsheikh/backstage-plugin-multi-owner-common';
-import type { MultiOwnerEntry } from '@thecodingsheikh/backstage-plugin-multi-owner-common';
+import { MULTI_OWNER_ANNOTATION } from '../utils/constants';
+import { parseOwners } from '../utils/parseOwners';
+import type { MultiOwnerEntry } from '../utils/types';
 
 /**
  * Custom hook that reads the multi-owner annotation from the current
@@ -14,7 +12,7 @@ import type { MultiOwnerEntry } from '@thecodingsheikh/backstage-plugin-multi-ow
  *
  * @example
  * ```tsx
- * const { owners } = useMultiOwners();
+    * const { owners } = useMultiOwners();
  * ```
  */
 export function useMultiOwners(): {

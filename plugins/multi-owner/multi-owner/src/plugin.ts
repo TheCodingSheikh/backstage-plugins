@@ -3,7 +3,7 @@ import {
     createComponentExtension,
 } from '@backstage/core-plugin-api';
 import { Entity } from '@backstage/catalog-model';
-import { MULTI_OWNER_ANNOTATION } from '@thecodingsheikh/backstage-plugin-multi-owner-common';
+import { MULTI_OWNER_ANNOTATION } from './utils/constants';
 
 /**
  * The multi-owner frontend plugin.

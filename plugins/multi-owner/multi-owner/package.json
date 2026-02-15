@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-multi-owner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -34,7 +34,6 @@
     "@backstage/theme": "^0.7.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.2",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {
