@@ -71,4 +71,7 @@ backend.add(
 backend.add(
   import('@backstage-community/plugin-scaffolder-backend-module-annotator'),
 );
+
+backend.add(import('../../../plugins/multi-owner/catalog-backend-module-multi-owner-processor/src'));
+
 backend.start();

@@ -34,7 +34,7 @@
     "@backstage/theme": "^0.7.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^0.1.0",
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.0",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {

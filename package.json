@@ -25,7 +25,8 @@
   "workspaces": {
     "packages": [
       "packages/*",
-      "plugins/*"
+      "plugins/*",
+      "plugins/multi-owner/*"
     ]
   },
   "devDependencies": {
