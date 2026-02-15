@@ -63,6 +63,11 @@ import {
   isEntityScaffolderAvailable,
 } from '../../../../../plugins/entity-scaffolder/src';
 
+import {
+  EntityMultiOwnerCard,
+  isMultiOwnerAvailable,
+} from '../../../../../plugins/multi-owner/multi-owner/src';
+
 
 const techdocsContent = (
   <EntityTechdocsContent>
@@ -139,6 +144,14 @@ const overviewContent = (
     <Grid item md={6} xs={12}>
       <EntityCatalogGraphCard variant="gridItem" height={400} />
     </Grid>
+
+    <EntitySwitch>
+      <EntitySwitch.Case if={isMultiOwnerAvailable}>
+        <Grid item md={6} xs={12}>
+          <EntityMultiOwnerCard />
+        </Grid>
+      </EntitySwitch.Case>
+    </EntitySwitch>
 
     <Grid item md={4} xs={12}>
       <EntityLinksCard />

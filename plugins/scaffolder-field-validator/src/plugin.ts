@@ -14,6 +14,13 @@ export const scaffolderFieldValidatorPlugin = createPlugin({
 
 const DEFAULT_ERROR_MESSAGE = 'This name already exists. Please choose a different name.';
 
+function renderErrorMessage(template: string, watchedValue?: string): string {
+  if (!watchedValue) {
+    return template;
+  }
+  return template.replace(/\{\{\s*value\s*\}\}/g, watchedValue);
+}
+
 /**
  * Async validation function for the ScaffolderFieldValidator field extension.
  * This runs when the form is submitted to verify the name doesn't exist.
@@ -30,7 +37,10 @@ export const scaffolderFieldValidatorValidation = async (
     try {
       const parsed: ValidatorValue = JSON.parse(value);
       if (parsed.exists) {
-        const errorMessage = parsed.errorMessage || DEFAULT_ERROR_MESSAGE;
+        const errorMessage = renderErrorMessage(
+          parsed.errorMessage || DEFAULT_ERROR_MESSAGE,
+          parsed.watchedValue,
+        );
         validation.addError(errorMessage);
       }
     } catch (_e) {

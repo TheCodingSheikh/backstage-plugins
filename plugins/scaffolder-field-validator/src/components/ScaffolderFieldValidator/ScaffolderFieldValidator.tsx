@@ -16,6 +16,7 @@ import {
 export interface ValidatorValue {
   exists: boolean;
   errorMessage?: string;
+  watchedValue?: string;
 }
 
 function get(obj: unknown, path: string): unknown {
@@ -98,6 +99,7 @@ export const ScaffolderFieldValidator = (
           const validatorValue: ValidatorValue = {
             exists: true,
             errorMessage: options.errorMessage,
+            watchedValue: watchedValue,
           };
           onChange(JSON.stringify(validatorValue));
         } else {

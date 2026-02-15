@@ -18,6 +18,11 @@ spec:
   owner: guests
   system: examples
   providesApis: [example-grpc-api]
+  owners:
+    - name: group:default/guests
+      role: maintainer
+    - name: user:default/guest
+      role: tech-lead
 ---
 # https://backstage.io/docs/features/software-catalog/descriptor-format#kind-api
 apiVersion: backstage.io/v1alpha1
