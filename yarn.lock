@@ -13846,6 +13846,7 @@ __metadata:
     "@thecodingsheikh/backstage-plugin-multi-owner-common": "npm:^1.0.2"
   languageName: unknown
   linkType: soft
+
 "@thecodingsheikh/backstage-plugin-entity-scaffolder@npm:^0.1.0":
   version: 0.1.0
   resolution: "@thecodingsheikh/backstage-plugin-entity-scaffolder@npm:0.1.0"
