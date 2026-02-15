@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -32,7 +32,7 @@
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/plugin-catalog-common": "^1.1.2",
     "@backstage/plugin-catalog-node": "^1.15.1",
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.0"
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.2"
   },
   "devDependencies": {
     "@backstage/backend-test-utils": "^1.2.1",
