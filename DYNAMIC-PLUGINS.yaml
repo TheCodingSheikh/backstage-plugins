@@ -90,6 +90,7 @@ plugins:
 
   - path: plugins/multi-owner/catalog-backend-module-multi-owner-processor
     version: 1.0.4
+    customCommand: yarn tsc
 
   - path: plugins/scaffolder-field-validator
     version: 1.0.0
@@ -103,7 +104,7 @@ plugins:
 
   - repo: RoadieHQ/roadie-backstage-plugins
     ref: main
-    path: plugins/frontend/scaffolder-frontend-module-http-request-field
+    path: plugins/scaffolder-field-extensions/scaffolder-frontend-module-http-request-field
     version: 2.3.0
     config: |
       pluginConfig:
