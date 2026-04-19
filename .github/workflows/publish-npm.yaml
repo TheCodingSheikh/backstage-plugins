@@ -25,11 +25,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Generate type declarations
+        run: yarn tsc
+
       - name: Build and publish bumped packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -e
+          failed=()
           for f in $(find plugins -name package.json -not -path '*/node_modules/*'); do
             private=$(jq -r '.private // false' "$f")
             [ "$private" = "true" ] && continue
@@ -40,7 +43,13 @@ jobs:
               continue
             fi
             echo "::group::Publishing $name@$version"
-            yarn workspace "$name" build
-            (cd "$(dirname "$f")" && npm publish --provenance --access public)
+            if ! (yarn workspace "$name" build && cd "$(dirname "$f")" && npm publish --provenance --access public); then
+              echo "::error::Failed to publish $name@$version"
+              failed+=("$name@$version")
+            fi
             echo "::endgroup::"
           done
+          if [ ${#failed[@]} -gt 0 ]; then
+            echo "::error::The following packages failed: ${failed[*]}"
+            exit 1
+          fi
