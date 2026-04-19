@@ -77,17 +77,25 @@ jobs:
           node-version: "22"
           cache: "yarn"
 
-      - name: Install root dependencies
+      - name: Enable corepack
         if: steps.release_check.outputs.exists == 'false'
-        run: yarn install
+        run: corepack enable
+
+      - name: Install workspace dependencies
+        if: steps.release_check.outputs.exists == 'false'
+        run: |
+          cd "${{ matrix.plugin.workspaceDir || '.' }}"
+          yarn install
 
       - name: Run custom command before export
         if: steps.release_check.outputs.exists == 'false' && matrix.plugin.customCommand != ''
         continue-on-error: true
-        run: ${{ matrix.plugin.customCommand }}
+        run: |
+          cd "${{ matrix.plugin.workspaceDir || '.' }}"
+          ${{ matrix.plugin.customCommand }}
 
       - name: Install plugin dependencies
-        if: steps.release_check.outputs.exists == 'false'
+        if: steps.release_check.outputs.exists == 'false' && !matrix.plugin.workspaceDir
         run: |
           cd "${{ matrix.plugin.path }}"
           yarn install

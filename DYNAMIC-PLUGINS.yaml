@@ -16,9 +16,18 @@
 #   ref            (optional) Branch, tag, or SHA in `repo` to build from.
 #                             Defaults to the default branch (external repos)
 #                             or the triggering commit (this repo).
+#   workspaceDir   (optional) Path to a nested Yarn workspace root inside the
+#                             source repo, for monorepos like
+#                             `backstage/community-plugins` where each
+#                             `workspaces/<name>` is its own Yarn project with
+#                             its own lockfile. When set, the workflow runs
+#                             `yarn install` (and any `customCommand`) inside
+#                             this directory instead of the repo root, and
+#                             skips the per-plugin `yarn install`.
 #   exportArgs     (optional) Extra args passed to `plugin export`.
-#   customCommand  (optional) Command run in the source repo root before
-#                             export (e.g. `yarn tsc`).
+#   customCommand  (optional) Command run in `workspaceDir` (or the source
+#                             repo root if `workspaceDir` is unset) before
+#                             export — e.g. `yarn tsc` to build siblings.
 #   config         (optional) YAML fragment appended inside the install-config
 #                             list item in the release body. Typically starts
 #                             with `pluginConfig:` at column 0; the workflow
@@ -113,3 +122,101 @@ plugins:
             roadiehq.plugin-scaffolder-frontend-module-http-request-field:
               scaffolderFieldExtensions:
                 - importName: SelectFieldFromApiExtension
+
+  - repo: backstage/community-plugins
+    ref: main
+    workspaceDir: workspaces/vault
+    path: workspaces/vault/plugins/vault
+    version: 0.19.0
+    customCommand: yarn tsc
+    config: |
+      pluginConfig:
+        vault:
+          baseUrl: ${VAULT_BASE_URL}
+          publicUrl: ${VAULT_PUBLIC_URL}
+          auth:
+            type: static
+            secret: ${VAULT_TOKEN}
+          secretEngine: secrets
+          kvVersion: 2
+        dynamicPlugins:
+          frontend:
+            backstage-community.plugin-vault:
+              mountPoints:
+                - mountPoint: entity.page.overview/cards
+                  importName: EntityVaultCard
+                  config:
+                    layout:
+                      gridColumnEnd:
+                        lg: "span 8"
+                        xs: "span 12"
+                    if:
+                      allOf:
+                        - isKind: component
+                        - hasAnnotation: vault.io/secrets-path
+
+  - repo: backstage/community-plugins
+    ref: main
+    workspaceDir: workspaces/vault
+    path: workspaces/vault/plugins/vault-backend
+    version: 0.21.0
+    customCommand: yarn tsc
+
+
+  - repo: backstage/community-plugins
+    ref: main
+    workspaceDir: workspaces/grafana
+    path: workspaces/grafana/plugins/grafana
+    version: 0.17.0
+    customCommand: yarn tsc
+    config: |
+      pluginConfig:
+        proxy:
+          endpoints:
+            /grafana/api:
+              target: ${GRAFANA_ENDPOINT}/
+              headers:
+                Authorization: "Bearer ${GRAFANA_TOKEN}"
+        grafana:
+          domain: ${GRAFANA_PUBLIC_DOMAIN}
+        dynamicPlugins:
+          frontend:
+            backstage-community.plugin-grafana:
+              entityTabs:
+                - path: /grafana
+                  title: Grafana
+                  mountPoint: entity.page.grafana
+              mountPoints:
+                - mountPoint: entity.page.grafana/cards
+                  importName: EntityOverviewDashboardViewer
+                  config:
+                    layout:
+                      gridColumn: "1 / -1"
+                    if:
+                      allOf:
+                        - isKind: component
+                        - hasAnnotation: grafana/overview-dashboard
+                - mountPoint: entity.page.grafana/cards
+                  importName: EntityGrafanaDashboardsCard
+                  config:
+                    layout:
+                      gridColumnEnd:
+                        lg: "span 8"
+                        xs: "span 12"
+                    if:
+                      allOf:
+                        - isKind: component
+                        - hasAnnotation: grafana/dashboard-selector
+                - mountPoint: entity.page.grafana/cards
+                  importName: EntityGrafanaAlertsCard
+                  config:
+                    layout:
+                      gridColumnEnd:
+                        lg: "span 8"
+                        xs: "span 12"
+                    if:
+                      allOf:
+                        - isKind: component
+                        - anyOf:
+                            - hasAnnotation: grafana/alert-label-selector
+                            - hasAnnotation: grafana/tag-selector
