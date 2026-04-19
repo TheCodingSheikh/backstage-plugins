@@ -43,12 +43,11 @@ jobs:
               echo "$name@$version already on npm, skipping"
               continue
             fi
-            echo "::group::Publishing $name@$version"
-            if ! (yarn workspace "$name" build && cd "$(dirname "$f")" && npm publish --provenance --access public); then
+            echo "--- Publishing $name@$version ---"
+            if ! (yarn workspace "$name" build && cd "$(dirname "$f")" && npm publish --access public); then
               echo "::error::Failed to publish $name@$version"
               failed+=("$name@$version")
             fi
-            echo "::endgroup::"
           done
           if [ ${#failed[@]} -gt 0 ]; then
             echo "::error::The following packages failed: ${failed[*]}"
