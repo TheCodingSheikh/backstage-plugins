@@ -14,15 +14,15 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.plan.outputs.matrix }}
+      matrix: ${{ steps.plan.outputs.result }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Build matrix from DYNAMIC-PLUGINS.yaml
         id: plan
-        run: |
-          matrix=$(yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml)
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml
 
   build-release:
     needs: plan
