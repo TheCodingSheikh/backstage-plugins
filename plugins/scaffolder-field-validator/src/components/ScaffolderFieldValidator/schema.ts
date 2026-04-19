@@ -1,30 +1,29 @@
 import { z } from 'zod';
 
-/**
- * Schema for the ScaffolderFieldValidator UI options
- */
 export const ScaffolderFieldValidatorConfigSchema = z.object({
     watchField: z.string(),
 
-    validationType: z.enum(['catalog', 'api']),
-
-    entityKind: z.string().optional(),
-
-    catalogFilter: z.record(z.string()).optional(),
-
-    apiPath: z.string().optional(),
+    apiPath: z.string(),
 
     params: z.record(z.any()).optional(),
 
-    /** 
-     * JMESPath expression to extract values from the API response.
-     * The result should be an array of values or a single value to check against.
-     * Use {{ value }} in the expression to reference the watched field value.
-     * 
+    /**
+     * JMESPath expression evaluated against the API response.
+     * If the result is truthy (true, non-empty array, non-null value),
+     * validation fails and the error message is shown.
+     *
+     * Supports {{value}} to reference the watched field value,
+     * and {{fieldName}} to reference other form fields.
+     *
      * Examples:
-     * - "items[*].name" - extracts name from all items
-     * - "data.results[?name=='{{ value }}']" - filters for matching name
-     * - "items[*].metadata.name" - nested property extraction
+     * - "length(@) > `0`"                          — response array has items
+     * - "status == 'archived'"                      — field equals value
+     * - "contains(items[*].name, '{{value}}')"      — array contains watched value
+     * - "count > `5`"                               — numeric comparison
+     * - "items[?status == 'active'] | length(@) > `0`" — filtered existence
+     *
+     * If omitted, validation fails when the response is a non-empty array
+     * or a truthy value.
      */
     jmesPath: z.string().optional(),
 
@@ -36,45 +35,32 @@ export type ScaffolderFieldValidatorConfig = z.infer<typeof ScaffolderFieldValid
 export const ScaffolderFieldValidatorSchema = {
     returnValue: {
         type: 'string' as const,
-        description: 'Internal value set when validation fails (contains the duplicate name)',
+        description: 'Internal JSON value set when validation fails',
     },
     uiOptions: {
         type: 'object' as const,
         properties: {
             watchField: {
                 type: 'string' as const,
-                description: 'The field name to watch for validation',
-            },
-            validationType: {
-                type: 'string' as const,
-                enum: ['catalog', 'api'],
-                description: 'Type of validation: catalog entity check or custom API',
-            },
-            entityKind: {
-                type: 'string' as const,
-                description: 'Entity kind to check against (for catalog validation)',
-            },
-            catalogFilter: {
-                type: 'object' as const,
-                description: 'Additional catalog filter options',
+                description: 'The form field to watch for changes',
             },
             apiPath: {
                 type: 'string' as const,
-                description: 'API path for HTTP validation',
+                description: 'Backend API path (e.g. "catalog/entities", "proxy/my-api/check"). First segment is the plugin ID.',
             },
             params: {
                 type: 'object' as const,
-                description: 'Query parameters or body for API call',
+                description: 'Query parameters for the API call. Values support {{value}} and {{fieldName}} templates.',
             },
             jmesPath: {
                 type: 'string' as const,
-                description: 'JMESPath expression to extract and check values from API response',
+                description: 'JMESPath expression to evaluate against the response. Truthy result = validation fails.',
             },
             errorMessage: {
                 type: 'string' as const,
-                description: 'Custom error message when validation fails',
+                description: 'Error message shown on failure. Supports {{value}} template.',
             },
         },
-        required: ['watchField', 'validationType'],
+        required: ['watchField', 'apiPath'],
     },
 };

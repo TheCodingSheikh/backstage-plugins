@@ -4,17 +4,15 @@ import {
   discoveryApiRef,
   fetchApiRef,
 } from '@backstage/core-plugin-api';
-import { catalogApiRef, CatalogApi } from '@backstage/plugin-catalog-react';
 import { FieldExtensionComponentProps } from '@backstage/plugin-scaffolder-react';
 import { search } from '@metrichor/jmespath';
 import {
   ScaffolderFieldValidatorConfig,
-  ScaffolderFieldValidatorConfigSchema
+  ScaffolderFieldValidatorConfigSchema,
 } from './schema';
 
-
 export interface ValidatorValue {
-  exists: boolean;
+  failed: boolean;
   errorMessage?: string;
   watchedValue?: string;
 }
@@ -31,32 +29,61 @@ function get(obj: unknown, path: string): unknown {
   return result;
 }
 
-function renderTemplate(template: string, context: Record<string, unknown>): string {
+function renderTemplate(
+  template: string,
+  context: Record<string, unknown>,
+): string {
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
     return String(context[key] ?? '');
   });
 }
 
+function isTruthy(value: unknown): boolean {
+  if (value === null || value === undefined || value === '' || value === false) {
+    return false;
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0;
+  }
+  return true;
+}
+
+/**
+ * Resolves apiPath to a full URL using the discovery API.
+ * The first path segment is used as the plugin ID.
+ * e.g. "catalog/entities" → getBaseUrl("catalog") + "/entities"
+ */
+async function resolveUrl(
+  discoveryApi: { getBaseUrl: (pluginId: string) => Promise<string> },
+  apiPath: string,
+  params?: URLSearchParams,
+): Promise<string> {
+  const segments = apiPath.replace(/^\//, '').split('/');
+  const pluginId = segments[0];
+  const restPath = segments.length > 1 ? `/${segments.slice(1).join('/')}` : '';
+  const baseUrl = await discoveryApi.getBaseUrl(pluginId);
+  const query = params?.toString();
+  return query ? `${baseUrl}${restPath}?${query}` : `${baseUrl}${restPath}`;
+}
+
 export const ScaffolderFieldValidator = (
-  props: FieldExtensionComponentProps<string>
+  props: FieldExtensionComponentProps<string>,
 ) => {
   const { formContext, uiSchema, onChange } = props;
-  const catalogApi = useApi(catalogApiRef);
   const discoveryApi = useApi(discoveryApiRef);
   const fetchApi = useApi(fetchApiRef);
   const prevWatchedValueRef = useRef<string | undefined>(undefined);
 
   const optionsResult = ScaffolderFieldValidatorConfigSchema.safeParse(
-    uiSchema?.['ui:options']
+    uiSchema?.['ui:options'],
   );
 
-  const options: ScaffolderFieldValidatorConfig | undefined = optionsResult.success
-    ? optionsResult.data
-    : undefined;
+  const options: ScaffolderFieldValidatorConfig | undefined =
+    optionsResult.success ? optionsResult.data : undefined;
 
   const watchedFieldName = options?.watchField;
   const watchedValue = watchedFieldName
-    ? get(formContext?.formData, watchedFieldName) as string | undefined
+    ? (get(formContext?.formData, watchedFieldName) as string | undefined)
     : undefined;
 
   useEffect(() => {
@@ -69,39 +96,62 @@ export const ScaffolderFieldValidator = (
     }
     prevWatchedValueRef.current = watchedValue;
 
-    if (!watchedValue || watchedValue.trim() === '') {
+    if (!watchedValue || String(watchedValue).trim() === '') {
       onChange(undefined);
       return;
     }
 
     const validateAsync = async () => {
       try {
-        let exists = false;
+        const templateContext: Record<string, unknown> = {
+          value: watchedValue,
+          ...formContext?.formData,
+        };
 
-        if (options.validationType === 'catalog') {
-          exists = await checkCatalogEntity(
-            catalogApi,
-            watchedValue,
-            options.entityKind,
-            options.catalogFilter
-          );
-        } else if (options.validationType === 'api') {
-          exists = await checkApiEndpoint(
-            discoveryApi,
-            fetchApi,
-            watchedValue,
-            options,
-            formContext?.formData
-          );
+        // Build query params
+        const params = new URLSearchParams();
+        if (options.params) {
+          for (const [key, val] of Object.entries(options.params)) {
+            params.append(
+              key,
+              typeof val === 'string'
+                ? renderTemplate(val, templateContext)
+                : String(val),
+            );
+          }
         }
 
-        if (exists) {
-          const validatorValue: ValidatorValue = {
-            exists: true,
+        // Resolve URL and fetch
+        const renderedPath = renderTemplate(options.apiPath, templateContext);
+        const url = await resolveUrl(discoveryApi, renderedPath, params);
+        const response = await fetchApi.fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          onChange(undefined);
+          return;
+        }
+
+        const body = await response.json();
+
+        // Evaluate: jmesPath if provided, otherwise raw truthiness
+        let failed: boolean;
+        if (options.jmesPath) {
+          const expr = renderTemplate(options.jmesPath, templateContext);
+          failed = isTruthy(search(body, expr));
+        } else {
+          failed = isTruthy(body);
+        }
+
+        if (failed) {
+          const result: ValidatorValue = {
+            failed: true,
             errorMessage: options.errorMessage,
-            watchedValue: watchedValue,
+            watchedValue: String(watchedValue),
           };
-          onChange(JSON.stringify(validatorValue));
+          onChange(JSON.stringify(result));
         } else {
           onChange(undefined);
         }
@@ -111,115 +161,15 @@ export const ScaffolderFieldValidator = (
     };
 
     validateAsync();
-  }, [watchedValue, watchedFieldName, options, catalogApi, discoveryApi, fetchApi, onChange, formContext?.formData]);
+  }, [
+    watchedValue,
+    watchedFieldName,
+    options,
+    discoveryApi,
+    fetchApi,
+    onChange,
+    formContext?.formData,
+  ]);
 
   return null;
 };
-
-/**
- * Check if an entity exists in the Backstage catalog
- */
-async function checkCatalogEntity(
-  catalogApi: CatalogApi,
-  name: string,
-  entityKind?: string,
-  catalogFilter?: Record<string, string>
-): Promise<boolean> {
-  try {
-    const filter: Record<string, string> = {
-      ...catalogFilter,
-      'metadata.name': name,
-    };
-
-    if (entityKind) {
-      filter.kind = entityKind;
-    }
-
-    const response = await catalogApi.getEntities({
-      filter: [filter],
-      limit: 1,
-    });
-
-    return response.items.length > 0;
-  } catch (_error) {
-    return false;
-  }
-}
-
-/**
- * Check if a value exists via Backstage backend API endpoint
- * Uses JMESPath expressions to extract and check values from the response
- */
-async function checkApiEndpoint(
-  discoveryApi: { getBaseUrl: (pluginId: string) => Promise<string> },
-  fetchApi: { fetch: typeof fetch },
-  value: string,
-  options: ScaffolderFieldValidatorConfig,
-  formData?: Record<string, unknown>
-): Promise<boolean> {
-  if (!options.apiPath) {
-    return false;
-  }
-
-  try {
-    const baseUrl = await discoveryApi.getBaseUrl('');
-
-    const params = new URLSearchParams();
-    const templateContext = { value, ...formData };
-
-    if (options.params) {
-      Object.entries(options.params).forEach(([key, val]) => {
-        const resolvedValue = typeof val === 'string'
-          ? renderTemplate(val, templateContext)
-          : String(val);
-        params.append(key, resolvedValue);
-      });
-    }
-
-    const renderedPath = renderTemplate(options.apiPath, templateContext);
-
-    const url = `${baseUrl}${renderedPath}?${params.toString()}`;
-
-    const fetchOptions: RequestInit = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    };
-
-    const response = await fetchApi.fetch(url, fetchOptions);
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const body = await response.json();
-
-    if (options.jmesPath) {
-      const renderedJmesPath = renderTemplate(options.jmesPath, templateContext);
-
-      const result = search(body, renderedJmesPath);
-
-      if (Array.isArray(result)) {
-        return result.length > 0 && (
-          result.includes(value) ||
-          result.some(item => item === value || (typeof item === 'object' && item !== null))
-        );
-      }
-
-      if (typeof result === 'boolean') {
-        return result;
-      }
-
-      return result !== null && result !== undefined && result !== '';
-    }
-
-    if (Array.isArray(body)) {
-      return body.length > 0;
-    }
-
-    return false;
-  } catch (_error) {
-    return false;
-  }
-}
