@@ -24,19 +24,23 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
           yq --version
 
-      - name: Build matrix from DYNAMIC-PLUGINS.yaml
+      - name: Build slim matrix (no config, to keep payload small)
         id: plan
         run: |
           set -euo pipefail
-          matrix=$(yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml) || {
+          matrix=$(yq -o=json -I=0 \
+            '[.plugins | to_entries | .[] | .value + {"index": .key} | del(.config)]' \
+            DYNAMIC-PLUGINS.yaml) || {
             echo "::error::yq failed to parse DYNAMIC-PLUGINS.yaml"
             exit 1
           }
-          if [ -z "$matrix" ] || [ "$matrix" = "null" ] || [ "$matrix" = "[]" ]; then
-            echo "::error::DYNAMIC-PLUGINS.yaml produced an empty matrix (matrix='$matrix')"
+          count=$(printf '%s' "$matrix" | yq 'length')
+          bytes=$(printf '%s' "$matrix" | wc -c)
+          echo "Planned $count entries ($bytes bytes of matrix JSON)."
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No plugin entries found"
             exit 1
           fi
-          echo "Planned $(printf '%s' "$matrix" | yq 'length') entries ($(printf '%s' "$matrix" | wc -c) bytes)."
           {
             echo 'matrix<<__EOF__'
             printf '%s\n' "$matrix"
@@ -140,10 +144,31 @@ jobs:
         if: steps.release_check.outputs.exists == 'false'
         run: echo "${{ steps.package.outputs.integrity }}" > integrity.txt
 
+      - name: Fetch plugin config from DYNAMIC-PLUGINS.yaml
+        if: steps.release_check.outputs.exists == 'false'
+        id: config
+        run: |
+          set -euo pipefail
+          # Re-download DYNAMIC-PLUGINS.yaml from this repo at the triggering
+          # SHA — the workspace may currently hold an external plugin repo.
+          if ! command -v yq >/dev/null; then
+            sudo curl -fsSL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+          curl -fsSL -H 'Accept: application/vnd.github.raw' \
+            "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/DYNAMIC-PLUGINS.yaml" \
+            > /tmp/DYNAMIC-PLUGINS.yaml
+          config=$(yq ".plugins[${{ matrix.plugin.index }}].config // \"\"" /tmp/DYNAMIC-PLUGINS.yaml)
+          {
+            echo 'config<<__EOF__'
+            printf '%s\n' "$config"
+            echo '__EOF__'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create body.md
         if: steps.release_check.outputs.exists == 'false'
         env:
-          PLUGIN_CONFIG: ${{ matrix.plugin.config }}
+          PLUGIN_CONFIG: ${{ steps.config.outputs.config }}
           PACKAGE_URL: "https://github.com/${{ github.repository }}/releases/download/${{ steps.meta.outputs.tag }}/${{ steps.package.outputs.tarball }}"
           INTEGRITY: ${{ steps.package.outputs.integrity }}
         run: |
