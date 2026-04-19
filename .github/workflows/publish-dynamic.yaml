@@ -74,7 +74,7 @@ jobs:
         if: steps.release_check.outputs.exists == 'false'
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: "22"
           cache: "yarn"
 
       - name: Install root dependencies
