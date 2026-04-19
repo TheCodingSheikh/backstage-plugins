@@ -12,21 +12,21 @@ permissions:
 
 jobs:
   plan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
-      matrix: ${{ steps.plan.outputs.result }}
+      matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Build matrix from DYNAMIC-PLUGINS.yaml
         id: plan
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml
+        run: |
+          matrix=$(yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml)
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   build-release:
     needs: plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
