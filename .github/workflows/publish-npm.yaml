@@ -1,0 +1,46 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**/package.json"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build and publish bumped packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -e
+          for f in $(find plugins -name package.json -not -path '*/node_modules/*'); do
+            private=$(jq -r '.private // false' "$f")
+            [ "$private" = "true" ] && continue
+            name=$(jq -r '.name' "$f")
+            version=$(jq -r '.version' "$f")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version already on npm, skipping"
+              continue
+            fi
+            echo "::group::Publishing $name@$version"
+            yarn workspace "$name" build
+            (cd "$(dirname "$f")" && npm publish --provenance --access public)
+            echo "::endgroup::"
+          done
