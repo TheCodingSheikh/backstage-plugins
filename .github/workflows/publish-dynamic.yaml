@@ -18,11 +18,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install mikefarah/yq
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
       - name: Build matrix from DYNAMIC-PLUGINS.yaml
         id: plan
         run: |
           set -euo pipefail
-          matrix=$(yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml)
+          matrix=$(yq -o=json -I=0 '.plugins' DYNAMIC-PLUGINS.yaml) || {
+            echo "::error::yq failed to parse DYNAMIC-PLUGINS.yaml"
+            exit 1
+          }
+          if [ -z "$matrix" ] || [ "$matrix" = "null" ] || [ "$matrix" = "[]" ]; then
+            echo "::error::DYNAMIC-PLUGINS.yaml produced an empty matrix (matrix='$matrix')"
+            exit 1
+          fi
           echo "Planned $(printf '%s' "$matrix" | yq 'length') entries ($(printf '%s' "$matrix" | wc -c) bytes)."
           {
             echo 'matrix<<__EOF__'
