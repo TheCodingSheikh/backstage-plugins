@@ -1,4 +1,7 @@
-import { createBackendModule } from '@backstage/backend-plugin-api';
+import {
+  coreServices,
+  createBackendModule,
+} from '@backstage/backend-plugin-api';
 import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node/alpha';
 import { MultiOwnerEntitiesProcessor } from './MultiOwnerEntitiesProcessor';
 
@@ -13,16 +16,17 @@ import { MultiOwnerEntitiesProcessor } from './MultiOwnerEntitiesProcessor';
  * ```
  */
 export default createBackendModule({
-    pluginId: 'catalog',
-    moduleId: 'multi-owner-processor',
-    register(reg) {
-        reg.registerInit({
-            deps: {
-                catalog: catalogProcessingExtensionPoint,
-            },
-            async init({ catalog }) {
-                catalog.addProcessor(new MultiOwnerEntitiesProcessor());
-            },
-        });
-    },
+  pluginId: 'catalog',
+  moduleId: 'multi-owner-processor',
+  register(reg) {
+    reg.registerInit({
+      deps: {
+        catalog: catalogProcessingExtensionPoint,
+        logger: coreServices.logger,
+      },
+      async init({ catalog, logger }) {
+        catalog.addProcessor(new MultiOwnerEntitiesProcessor(logger));
+      },
+    });
+  },
 });

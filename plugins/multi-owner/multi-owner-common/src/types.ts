@@ -6,10 +6,10 @@
  * - An object with a name and optional role: `{ name: "group:default/platform-team", role: "maintainer" }`
  */
 export interface MultiOwnerEntry {
-    /** Entity reference string, e.g. `"group:default/platform-team"` */
-    name: string;
-    /** Optional human-readable role label, e.g. `"maintainer"`, `"tech-lead"` */
-    role?: string;
+  /** Entity reference string, e.g. `"group:default/platform-team"` */
+  name: string;
+  /** Optional human-readable role label, e.g. `"maintainer"`, `"tech-lead"` */
+  role?: string;
 }
 
 /**

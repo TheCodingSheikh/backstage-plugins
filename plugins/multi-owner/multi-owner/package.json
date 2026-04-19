@@ -30,10 +30,12 @@
     "@backstage/catalog-model": "^1.7.3",
     "@backstage/core-components": "^0.18.3",
     "@backstage/core-plugin-api": "^1.12.0",
+    "@backstage/frontend-plugin-api": "^0.13.0",
     "@backstage/plugin-catalog-react": "^1.15.3",
     "@backstage/theme": "^0.7.0",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.3",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {

@@ -5,20 +5,12 @@
 import { parseEntityRef } from '@backstage/catalog-model';
 import {
   MissingAnnotationEmptyState,
-  useEntity
+  useEntity,
 } from '@backstage/plugin-catalog-react';
 import {
+  ScaffolderFieldExtensions,
   SecretsContextProvider,
 } from '@backstage/plugin-scaffolder-react';
-import { EmbeddedScaffolderWorkflow } from '@frontside/backstage-plugin-scaffolder-workflow';
-
-import {
-  ENTITY_SCAFFOLDER_CONFIG_ANNOTATION,
-  ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION,
-  ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION
-} from '../../annotations';
-
-import { ScaffolderFieldExtensions } from '@backstage/plugin-scaffolder-react';
 import {
   EntityPickerFieldExtension,
   RepoUrlPickerFieldExtension,
@@ -28,11 +20,27 @@ import {
   MyGroupsPickerFieldExtension,
   OwnedEntityPickerFieldExtension,
   EntityTagsPickerFieldExtension,
-  RepoBranchPickerFieldExtension
+  RepoBranchPickerFieldExtension,
 } from '@backstage/plugin-scaffolder';
+import { EmbeddedScaffolderWorkflow } from '@frontside/backstage-plugin-scaffolder-workflow';
 import { SelectFieldFromApiExtension } from '@roadiehq/plugin-scaffolder-frontend-module-http-request-field';
 
+import {
+  ENTITY_SCAFFOLDER_CONFIG_ANNOTATION,
+  ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION,
+  ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION,
+} from '../../annotations';
 
+function safeParseConfig(value: string): Record<string, unknown> {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
 
 /**
  * Use templates from within the EntityPage.
@@ -51,57 +59,60 @@ export const EntityScaffolderContent = () => {
   const immutableFieldsAnnotation =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION];
 
+  if (
+    !entityScaffolderConfigAnnotationValue ||
+    !entityScaffolderTemplateAnnotationValue
+  ) {
+    return (
+      <MissingAnnotationEmptyState
+        annotation={ENTITY_SCAFFOLDER_CONFIG_ANNOTATION}
+      />
+    );
+  }
+
   const immutableFields = immutableFieldsAnnotation
-    ? immutableFieldsAnnotation.split(',').map(f => f.trim())
+    ? immutableFieldsAnnotation.split(',').map(f => f.trim()).filter(Boolean)
     : [];
 
-  const uiSchema = immutableFields?.reduce((acc, field) => ({
-    ...acc,
-    [field]: { 'ui:readonly': true, 'ui:disabled': true }
-  }), {});
+  const uiSchema = immutableFields.reduce(
+    (acc, field) => ({
+      ...acc,
+      [field]: { 'ui:readonly': true, 'ui:disabled': true },
+    }),
+    {} as Record<string, unknown>,
+  );
 
   const initialState = {
-    ...(entityScaffolderConfigAnnotationValue
-      ? JSON.parse(entityScaffolderConfigAnnotationValue)
-      : {}),
+    ...safeParseConfig(entityScaffolderConfigAnnotationValue),
     firstRun: false,
   };
 
-  if (
-    entityScaffolderConfigAnnotationValue && entityScaffolderTemplateAnnotationValue
-  ) {
-    const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
+  const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
 
-    return (
-      <SecretsContextProvider>
-        <EmbeddedScaffolderWorkflow
-          namespace={templateEntity.namespace}
-          templateName={templateEntity.name}
-          initialState={initialState}
-          formProps={{ uiSchema }}
-          onError={(error: Error | undefined) => (
-            <h2>{error?.message ?? 'Error running workflow'}</h2>
-          )}
-        >
-          <ScaffolderFieldExtensions>
-            <RepoUrlPickerFieldExtension />
-            <EntityPickerFieldExtension />
-            <SelectFieldFromApiExtension />
-            <EntityNamePickerFieldExtension />
-            <MultiEntityPickerFieldExtension />
-            <OwnerPickerFieldExtension />
-            <MyGroupsPickerFieldExtension />
-            <OwnedEntityPickerFieldExtension />
-            <EntityTagsPickerFieldExtension />
-            <RepoBranchPickerFieldExtension />
-            <SelectFieldFromApiExtension />
-          </ScaffolderFieldExtensions>
-        </EmbeddedScaffolderWorkflow>
-      </SecretsContextProvider>
-    );
-  }
   return (
-    <MissingAnnotationEmptyState annotation={ENTITY_SCAFFOLDER_CONFIG_ANNOTATION} />
-
+    <SecretsContextProvider>
+      <EmbeddedScaffolderWorkflow
+        namespace={templateEntity.namespace}
+        templateName={templateEntity.name}
+        initialState={initialState}
+        formProps={{ uiSchema }}
+        onError={(error: Error | undefined) => (
+          <h2>{error?.message ?? 'Error running workflow'}</h2>
+        )}
+      >
+        <ScaffolderFieldExtensions>
+          <RepoUrlPickerFieldExtension />
+          <EntityPickerFieldExtension />
+          <SelectFieldFromApiExtension />
+          <EntityNamePickerFieldExtension />
+          <MultiEntityPickerFieldExtension />
+          <OwnerPickerFieldExtension />
+          <MyGroupsPickerFieldExtension />
+          <OwnedEntityPickerFieldExtension />
+          <EntityTagsPickerFieldExtension />
+          <RepoBranchPickerFieldExtension />
+        </ScaffolderFieldExtensions>
+      </EmbeddedScaffolderWorkflow>
+    </SecretsContextProvider>
   );
 };

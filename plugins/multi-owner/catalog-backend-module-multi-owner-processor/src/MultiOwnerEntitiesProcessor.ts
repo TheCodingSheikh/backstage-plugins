@@ -1,20 +1,20 @@
 import {
-    CatalogProcessor,
-    CatalogProcessorEmit,
-    processingResult,
+  CatalogProcessor,
+  CatalogProcessorEmit,
+  processingResult,
 } from '@backstage/plugin-catalog-node';
-import { Entity } from '@backstage/catalog-model';
-import { LocationSpec } from '@backstage/plugin-catalog-common';
 import {
-    RELATION_OWNED_BY,
-    RELATION_OWNER_OF,
-    parseEntityRef,
-    stringifyEntityRef,
+  Entity,
+  RELATION_OWNED_BY,
+  RELATION_OWNER_OF,
+  parseEntityRef,
 } from '@backstage/catalog-model';
+import { LocationSpec } from '@backstage/plugin-catalog-common';
+import { LoggerService } from '@backstage/backend-plugin-api';
 import {
-    MULTI_OWNER_ANNOTATION,
-} from './utils/constants';
-import { parseOwners } from './utils/parseOwners';
+  MULTI_OWNER_ANNOTATION,
+  parseOwners,
+} from '@thecodingsheikh/backstage-plugin-multi-owner-common';
 
 /**
  * A catalog processor that reads `spec.owners` from entities and emits
@@ -29,90 +29,87 @@ import { parseOwners } from './utils/parseOwners';
  * Duplicate relations are automatically deduplicated by the catalog engine.
  */
 export class MultiOwnerEntitiesProcessor implements CatalogProcessor {
-    getProcessorName(): string {
-        return 'MultiOwnerEntitiesProcessor';
+  constructor(private readonly logger?: LoggerService) {}
+
+  getProcessorName(): string {
+    return 'MultiOwnerEntitiesProcessor';
+  }
+
+  async preProcessEntity(
+    entity: Entity,
+    _location: LocationSpec,
+  ): Promise<Entity> {
+    const spec = entity.spec as Record<string, unknown> | undefined;
+    if (!spec?.owners) {
+      return entity;
     }
 
-    async preProcessEntity(
-        entity: Entity,
-        _location: LocationSpec,
-    ): Promise<Entity> {
-        const spec = entity.spec as Record<string, unknown> | undefined;
-        if (!spec?.owners) {
-            return entity;
-        }
-
-        const owners = parseOwners(spec.owners);
-        if (owners.length === 0) {
-            return entity;
-        }
-
-        // Write the normalized owner list as a JSON annotation so the
-        // frontend card can read it without re-parsing spec.
-        return {
-            ...entity,
-            metadata: {
-                ...entity.metadata,
-                annotations: {
-                    ...entity.metadata.annotations,
-                    [MULTI_OWNER_ANNOTATION]: JSON.stringify(owners),
-                },
-            },
-        };
+    const owners = parseOwners(spec.owners);
+    if (owners.length === 0) {
+      return entity;
     }
 
-    async postProcessEntity(
-        entity: Entity,
-        _location: LocationSpec,
-        emit: CatalogProcessorEmit,
-    ): Promise<Entity> {
-        const spec = entity.spec as Record<string, unknown> | undefined;
-        if (!spec?.owners) {
-            return entity;
-        }
+    return {
+      ...entity,
+      metadata: {
+        ...entity.metadata,
+        annotations: {
+          ...entity.metadata.annotations,
+          [MULTI_OWNER_ANNOTATION]: JSON.stringify(owners),
+        },
+      },
+    };
+  }
 
-        const owners = parseOwners(spec.owners);
-
-        for (const owner of owners) {
-            let ownerRef: string;
-            try {
-                // Validate and normalize the entity reference
-                const parsed = parseEntityRef(owner.name, {
-                    defaultKind: 'group',
-                    defaultNamespace: entity.metadata.namespace || 'default',
-                });
-                ownerRef = stringifyEntityRef(parsed);
-            } catch {
-                // Skip invalid references
-                continue;
-            }
-
-            // Emit the bidirectional ownership relations
-            emit(
-                processingResult.relation({
-                    type: RELATION_OWNED_BY,
-                    source: {
-                        kind: entity.kind,
-                        namespace: entity.metadata.namespace || 'default',
-                        name: entity.metadata.name,
-                    },
-                    target: parseEntityRef(ownerRef),
-                }),
-            );
-
-            emit(
-                processingResult.relation({
-                    type: RELATION_OWNER_OF,
-                    source: parseEntityRef(ownerRef),
-                    target: {
-                        kind: entity.kind,
-                        namespace: entity.metadata.namespace || 'default',
-                        name: entity.metadata.name,
-                    },
-                }),
-            );
-        }
-
-        return entity;
+  async postProcessEntity(
+    entity: Entity,
+    _location: LocationSpec,
+    emit: CatalogProcessorEmit,
+  ): Promise<Entity> {
+    const spec = entity.spec as Record<string, unknown> | undefined;
+    if (!spec?.owners) {
+      return entity;
     }
+
+    const owners = parseOwners(spec.owners);
+    const entityNamespace = entity.metadata.namespace || 'default';
+    const source = {
+      kind: entity.kind,
+      namespace: entityNamespace,
+      name: entity.metadata.name,
+    };
+
+    for (const owner of owners) {
+      let ownerRef;
+      try {
+        ownerRef = parseEntityRef(owner.name, {
+          defaultKind: 'group',
+          defaultNamespace: entityNamespace,
+        });
+      } catch (error) {
+        this.logger?.debug(
+          `Skipping invalid owner reference "${owner.name}" on ${source.kind}:${source.namespace}/${source.name}: ${error}`,
+        );
+        continue;
+      }
+
+      emit(
+        processingResult.relation({
+          type: RELATION_OWNED_BY,
+          source,
+          target: ownerRef,
+        }),
+      );
+
+      emit(
+        processingResult.relation({
+          type: RELATION_OWNER_OF,
+          source: ownerRef,
+          target: source,
+        }),
+      );
+    }
+
+    return entity;
+  }
 }
