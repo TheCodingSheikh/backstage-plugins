@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-scaffolder-field-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -13,6 +13,10 @@
     "pluginPackages": [
       "@thecodingsheikh/backstage-plugin-scaffolder-field-validator"
     ]
+  },
+  "configSchema": {
+    "$schema": "https://backstage.io/schema/config-v1",
+    "type": "object"
   },
   "sideEffects": false,
   "scripts": {

@@ -35,7 +35,7 @@
 
 plugins:
   - path: plugins/entity-scaffolder
-    version: 0.3.0
+    version: 0.3.1
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -102,7 +102,7 @@ plugins:
     customCommand: yarn tsc
 
   - path: plugins/scaffolder-field-validator
-    version: 1.0.0
+    version: 1.0.1
     config: |
       pluginConfig:
         dynamicPlugins:
