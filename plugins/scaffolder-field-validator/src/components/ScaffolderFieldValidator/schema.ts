@@ -28,6 +28,18 @@ export const ScaffolderFieldValidatorConfigSchema = z.object({
     jmesPath: z.string().optional(),
 
     errorMessage: z.string().optional(),
+
+    /**
+     * When true, validation is skipped if the watched field's current value
+     * equals its original value under `formData.__originalFormValues`.
+     *
+     * Intended for edit-mode embeddings (e.g. entity-scaffolder) where the
+     * form is pre-filled with an entity's existing values — a uniqueness-style
+     * validator would otherwise always fail against those same values.
+     *
+     * Changing the watched value re-runs validation normally.
+     */
+    skipIfUnchanged: z.boolean().optional(),
 });
 
 export type ScaffolderFieldValidatorConfig = z.infer<typeof ScaffolderFieldValidatorConfigSchema>;
@@ -59,6 +71,10 @@ export const ScaffolderFieldValidatorSchema = {
             errorMessage: {
                 type: 'string' as const,
                 description: 'Error message shown on failure. Supports {{value}} template.',
+            },
+            skipIfUnchanged: {
+                type: 'boolean' as const,
+                description: 'Skip validation when the watched value equals formData.__originalFormValues[watchField]. Used by edit-mode embeddings (e.g. entity-scaffolder).',
             },
         },
         required: ['watchField', 'apiPath'],

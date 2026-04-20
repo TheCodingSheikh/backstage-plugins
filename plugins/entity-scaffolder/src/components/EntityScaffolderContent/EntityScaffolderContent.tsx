@@ -3,6 +3,7 @@
  * Licensed under the terms of the Apache-2.0 license. See LICENSE file in project root for terms.
  */
 import { parseEntityRef } from '@backstage/catalog-model';
+import { JsonObject, JsonValue } from '@backstage/types';
 import {
   MissingAnnotationEmptyState,
   useEntity,
@@ -24,6 +25,7 @@ import {
 } from '@backstage/plugin-scaffolder';
 import { EmbeddedScaffolderWorkflow } from '@frontside/backstage-plugin-scaffolder-workflow';
 import { SelectFieldFromApiExtension } from '@roadiehq/plugin-scaffolder-frontend-module-http-request-field';
+import { ScaffolderFieldValidatorExtension } from '@thecodingsheikh/backstage-plugin-scaffolder-field-validator';
 
 import {
   ENTITY_SCAFFOLDER_CONFIG_ANNOTATION,
@@ -31,11 +33,11 @@ import {
   ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION,
 } from '../../annotations';
 
-function safeParseConfig(value: string): Record<string, unknown> {
+function safeParseConfig(value: string): JsonObject {
   try {
     const parsed = JSON.parse(value);
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as Record<string, unknown>)
+      ? (parsed as JsonObject)
       : {};
   } catch {
     return {};
@@ -82,9 +84,11 @@ export const EntityScaffolderContent = () => {
     {} as Record<string, unknown>,
   );
 
-  const initialState = {
-    ...safeParseConfig(entityScaffolderConfigAnnotationValue),
+  const parsedConfig = safeParseConfig(entityScaffolderConfigAnnotationValue);
+  const initialState: Record<string, JsonValue> = {
+    ...parsedConfig,
     firstRun: false,
+    __originalFormValues: parsedConfig,
   };
 
   const templateEntity = parseEntityRef(entityScaffolderTemplateAnnotationValue);
@@ -111,6 +115,7 @@ export const EntityScaffolderContent = () => {
           <OwnedEntityPickerFieldExtension />
           <EntityTagsPickerFieldExtension />
           <RepoBranchPickerFieldExtension />
+          <ScaffolderFieldValidatorExtension />
         </ScaffolderFieldExtensions>
       </EmbeddedScaffolderWorkflow>
     </SecretsContextProvider>

@@ -101,6 +101,20 @@ export const ScaffolderFieldValidator = (
       return;
     }
 
+    if (options.skipIfUnchanged) {
+      const originals = get(
+        formContext?.formData,
+        '__originalFormValues',
+      ) as Record<string, unknown> | undefined;
+      const originalValue = originals
+        ? (get(originals, watchedFieldName) as string | undefined)
+        : undefined;
+      if (originalValue !== undefined && originalValue === watchedValue) {
+        onChange(undefined);
+        return;
+      }
+    }
+
     const validateAsync = async () => {
       try {
         const templateContext: Record<string, unknown> = {

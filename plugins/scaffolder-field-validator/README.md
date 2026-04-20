@@ -29,6 +29,7 @@ import { ScaffolderFieldValidatorExtension } from '@thecodingsheikh/backstage-pl
 | `params` | no | Query parameters. Values support `{{value}}` (watched field) and `{{fieldName}}` (other form fields) |
 | `jmesPath` | no | [JMESPath](https://jmespath.org/) expression evaluated against the API response. Truthy result = validation fails. If omitted, fails when response is a non-empty array or truthy value |
 | `errorMessage` | no | Error message shown on failure. Supports `{{value}}` |
+| `skipIfUnchanged` | no | For use in the embedded form provided by [`@thecodingsheikh/backstage-plugin-entity-scaffolder`](https://www.npmjs.com/package/@thecodingsheikh/backstage-plugin-entity-scaffolder) |
 
 ## Examples
 
@@ -44,7 +45,6 @@ parameters:
       nameValidator:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: name
           apiPath: catalog/entities
@@ -66,7 +66,6 @@ parameters:
       ownerValidator:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: owner
           apiPath: catalog/entities
@@ -88,7 +87,6 @@ parameters:
       projectValidator:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: projectName
           apiPath: proxy/my-api/projects/{{value}}
@@ -108,7 +106,6 @@ parameters:
       replicaValidator:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: replicas
           apiPath: proxy/cluster-api/capacity
@@ -128,7 +125,6 @@ parameters:
       reservedCheck:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: name
           apiPath: proxy/my-api/reserved-names
@@ -152,7 +148,6 @@ parameters:
       nameValidator:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: name
           apiPath: proxy/my-api/services
@@ -177,7 +172,6 @@ parameters:
       nameExistsCheck:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: name
           apiPath: catalog/entities
@@ -188,7 +182,6 @@ parameters:
       nameReservedCheck:
         type: string
         ui:field: ScaffolderFieldValidator
-        ui:widget: hidden
         ui:options:
           watchField: name
           apiPath: proxy/my-api/reserved-names
