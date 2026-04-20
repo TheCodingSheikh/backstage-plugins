@@ -129,6 +129,47 @@ jobs:
           cd "${{ matrix.plugin.path }}"
           npx @red-hat-developer-hub/cli@latest plugin export ${{ matrix.plugin.exportArgs }}
 
+      - name: Strip stale schemas from dynamic plugin output
+        if: steps.release_check.outputs.exists == 'false'
+        env:
+          STRIP_KEYS: ${{ toJson(matrix.plugin.stripSchemas) }}
+        run: |
+          set -euo pipefail
+          if [ -z "$STRIP_KEYS" ] || [ "$STRIP_KEYS" = "null" ] || [ "$STRIP_KEYS" = "[]" ]; then
+            echo "No schemas to strip."
+            exit 0
+          fi
+          cd "${{ matrix.plugin.path }}/dist-dynamic"
+          echo "Stripping top-level config-schema keys: $STRIP_KEYS"
+
+          strip_schema_object='
+            if type == "object" and has("properties") then
+              reduce $keys[] as $k (.; del(.properties[$k]))
+            else . end
+          '
+
+          while IFS= read -r f; do
+            tmp=$(mktemp)
+            jq --argjson keys "$STRIP_KEYS" "$strip_schema_object" "$f" > "$tmp" \
+              && mv "$tmp" "$f"
+            echo "Cleaned $f"
+          done < <(find . -type f \( \
+              -name "configSchema.json" \
+              -o -name ".config-schema.json" \
+              -o -name "config-schema.json" \
+            \))
+
+          if jq -e '.configSchema' package.json >/dev/null 2>&1; then
+            tmp=$(mktemp)
+            jq --argjson keys "$STRIP_KEYS" '
+              .configSchema |= (
+                if type == "array" then map('"$strip_schema_object"')
+                else '"$strip_schema_object"' end
+              )
+            ' package.json > "$tmp" && mv "$tmp" package.json
+            echo "Cleaned embedded configSchema in package.json"
+          fi
+
       - name: Package plugin (npm pack)
         if: steps.release_check.outputs.exists == 'false'
         id: package

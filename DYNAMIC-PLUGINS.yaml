@@ -32,10 +32,16 @@
 #                             list item in the release body. Typically starts
 #                             with `pluginConfig:` at column 0; the workflow
 #                             indents every line by 2 spaces for you.
+#   stripSchemas   (optional) List of top-level config-schema property keys to
+#                             remove from the exported plugin's schema files
+#                             (e.g. `[techdocs]` to drop a stale techdocs
+#                             schema accidentally bundled by the export CLI).
+#                             Applied after `plugin export`, before `npm pack`.
 
 plugins:
   - path: plugins/entity-scaffolder
     version: 0.3.1
+    stripSchemas: [techdocs]
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -103,6 +109,7 @@ plugins:
 
   - path: plugins/scaffolder-field-validator
     version: 1.0.1
+    stripSchemas: [techdocs]
     config: |
       pluginConfig:
         dynamicPlugins:
