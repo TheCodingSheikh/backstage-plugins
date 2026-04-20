@@ -129,30 +129,34 @@ jobs:
           cd "${{ matrix.plugin.path }}"
           npx @red-hat-developer-hub/cli@latest plugin export ${{ matrix.plugin.exportArgs }}
 
-      - name: Strip stale schemas from dynamic plugin output
+      - name: Filter config schemas in dynamic plugin output
         if: steps.release_check.outputs.exists == 'false'
         env:
-          STRIP_KEYS: ${{ toJson(matrix.plugin.stripSchemas) }}
+          KEEP_KEYS: ${{ toJson(matrix.plugin.keepSchemas) }}
         run: |
           set -euo pipefail
-          if [ -z "$STRIP_KEYS" ] || [ "$STRIP_KEYS" = "null" ] || [ "$STRIP_KEYS" = "[]" ]; then
-            echo "No schemas to strip."
-            exit 0
+          # Absent/null keepSchemas is treated as an empty allow-list: plugins
+          # must opt IN to any schema contribution. This strips every transitively
+          # bundled @backstage/* schema the rhdh CLI pulls in by default.
+          if [ -z "$KEEP_KEYS" ] || [ "$KEEP_KEYS" = "null" ]; then
+            KEEP_KEYS="[]"
           fi
           cd "${{ matrix.plugin.path }}/dist-dynamic"
-          echo "Stripping top-level config-schema keys: $STRIP_KEYS"
+          echo "Restricting config-schema .properties to: $KEEP_KEYS"
 
-          strip_schema_object='
+          filter_schema_object='
             if type == "object" and has("properties") then
-              reduce $keys[] as $k (.; del(.properties[$k]))
+              .properties |= with_entries(
+                select(.key as $k | $keys | index($k) != null)
+              )
             else . end
           '
 
           while IFS= read -r f; do
             tmp=$(mktemp)
-            jq --argjson keys "$STRIP_KEYS" "$strip_schema_object" "$f" > "$tmp" \
+            jq --argjson keys "$KEEP_KEYS" "$filter_schema_object" "$f" > "$tmp" \
               && mv "$tmp" "$f"
-            echo "Cleaned $f"
+            echo "Filtered $f"
           done < <(find . -type f \( \
               -name "configSchema.json" \
               -o -name ".config-schema.json" \
@@ -161,13 +165,13 @@ jobs:
 
           if jq -e '.configSchema' package.json >/dev/null 2>&1; then
             tmp=$(mktemp)
-            jq --argjson keys "$STRIP_KEYS" '
+            jq --argjson keys "$KEEP_KEYS" '
               .configSchema |= (
-                if type == "array" then map('"$strip_schema_object"')
-                else '"$strip_schema_object"' end
+                if type == "array" then map('"$filter_schema_object"')
+                else '"$filter_schema_object"' end
               )
             ' package.json > "$tmp" && mv "$tmp" package.json
-            echo "Cleaned embedded configSchema in package.json"
+            echo "Filtered embedded configSchema in package.json"
           fi
 
       - name: Package plugin (npm pack)

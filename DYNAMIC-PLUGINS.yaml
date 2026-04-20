@@ -32,16 +32,21 @@
 #                             list item in the release body. Typically starts
 #                             with `pluginConfig:` at column 0; the workflow
 #                             indents every line by 2 spaces for you.
-#   stripSchemas   (optional) List of top-level config-schema property keys to
-#                             remove from the exported plugin's schema files
-#                             (e.g. `[techdocs]` to drop a stale techdocs
-#                             schema accidentally bundled by the export CLI).
+#   keepSchemas    (optional) Allow-list of top-level config-schema property
+#                             keys this plugin is permitted to contribute.
+#                             Every other `.properties.*` entry bundled by the
+#                             export CLI (including anything pulled in
+#                             transitively from unrelated `@backstage/*` deps)
+#                             is stripped. Default is an empty allow-list —
+#                             omit the field when the plugin owns no
+#                             app-config keys.
+#                               - absent       → empty schema (owns nothing)
+#                               - `[foo, bar]` → keep only those keys
 #                             Applied after `plugin export`, before `npm pack`.
 
 plugins:
   - path: plugins/entity-scaffolder
     version: 0.3.1
-    stripSchemas: [techdocs]
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -65,6 +70,7 @@ plugins:
     ref: main
     path: plugins/kubernetes-ingestor
     version: 3.14.0
+    keepSchemas: [kubernetesIngestor]
     customCommand: yarn tsc
     config: |
       pluginConfig:
@@ -109,7 +115,6 @@ plugins:
 
   - path: plugins/scaffolder-field-validator
     version: 1.0.1
-    stripSchemas: [techdocs]
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -135,6 +140,7 @@ plugins:
     workspaceDir: workspaces/vault
     path: workspaces/vault/plugins/vault
     version: 0.19.0
+    keepSchemas: [vault]
     customCommand: yarn tsc
     config: |
       pluginConfig:
@@ -175,6 +181,7 @@ plugins:
     workspaceDir: workspaces/grafana
     path: workspaces/grafana/plugins/grafana
     version: 0.17.0
+    keepSchemas: [grafana]
     customCommand: yarn tsc
     config: |
       pluginConfig:
