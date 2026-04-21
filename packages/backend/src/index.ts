@@ -40,10 +40,9 @@ backend.add(import('@backstage/plugin-catalog-backend-module-logs'));
 
 // permission plugin
 backend.add(import('@backstage/plugin-permission-backend'));
-// See https://backstage.io/docs/permissions/getting-started for how to create your own permission policy
-backend.add(
-  import('@backstage/plugin-permission-backend-module-allow-all-policy'),
-);
+// Custom policy that gates `entity-scaffolder.edit` with the annotation-driven
+// multi-owner rule, and allows everything else.
+backend.add(import('./permissions/policyModule'));
 
 // search plugin
 backend.add(import('@backstage/plugin-search-backend'));

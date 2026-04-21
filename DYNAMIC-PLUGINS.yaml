@@ -46,7 +46,7 @@
 
 plugins:
   - path: plugins/entity-scaffolder
-    version: 0.4.1
+    version: 0.4.2
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -108,7 +108,7 @@ plugins:
                         - isMultiOwnerAvailable
 
   - path: plugins/multi-owner/catalog-backend-module-multi-owner-processor
-    version: 1.0.5
+    version: 1.0.6
     customCommand: yarn tsc
 
   - path: plugins/scaffolder-field-validator

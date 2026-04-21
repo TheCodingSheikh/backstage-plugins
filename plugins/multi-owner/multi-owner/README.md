@@ -85,4 +85,13 @@ This plugin requires the backend processor module to be installed:
 yarn add @thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor
 ```
 
-See the [backend module README](../catalog-backend-module-multi-owner-processor/README.md) for setup instructions.
+See the [backend module README](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md) for setup instructions.
+
+## RBAC — role-aware permission rules
+
+The backend processor also registers two catalog permission rules that understand the `role` field on multi-owner entries. Use these in your `conditional-policies.yaml` to gate any `catalog-entity` resource permission (read, update, or plugin-defined permissions like `entity-scaffolder.edit`) on _ownership + role_, not just ownership.
+
+-   **`IS_ENTITY_MULTI_OWNER_WITH_ROLE(claims, roles)`** — policy-driven allowlist.
+-   **`IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE(claims, annotation)`** — reads allowed roles from a per-entity annotation (comma-separated).
+
+See the [backend module README](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md#permission-rules) for parameter details and policy examples.

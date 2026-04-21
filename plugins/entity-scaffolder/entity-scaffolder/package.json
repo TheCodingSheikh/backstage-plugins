@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-entity-scaffolder",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -34,6 +34,7 @@
     "@backstage/core-plugin-api": "^1.12.0",
     "@backstage/frontend-plugin-api": "^0.13.1",
     "@backstage/plugin-catalog-react": "^1.21.3",
+    "@backstage/plugin-permission-react": "^0.4.41",
     "@backstage/plugin-scaffolder": "^1.34.3",
     "@backstage/plugin-scaffolder-react": "^1.19.3",
     "@backstage/theme": "^0.7.0",
@@ -43,6 +44,7 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@roadiehq/plugin-scaffolder-frontend-module-http-request-field": "^2.3.0",
+    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "^0.1.0",
     "@thecodingsheikh/backstage-plugin-scaffolder-field-validator": "^1.2.0",
     "react-use": "^17.2.4"
   },

@@ -43,99 +43,99 @@ This plugin embeds a Backstage Scaffolder workflow into an entity's page, allowi
 
 ## RBAC for edit
 
-You can restrict who is allowed to open the scaffolder tab on a given entity by adding the `backstage.io/scaffolder-edit-roles` annotation. The value is a comma-separated list of role names. The tab is shown only to users who appear in the entity's `spec.owners` with a `role` matching one of those names.
+This plugin integrates with the [Backstage Permission Framework](https://backstage.io/docs/permissions/overview). Who may use the embedded workflow on any given entity is decided by your permission policy — when denied, the tab stays visible but the panel renders a _Not authorized_ message instead of the workflow.
 
--   **Fallback**: if the annotation is absent, the tab is shown to everyone (backwards compatible).
--   **Owner format**: role-based checks require the owner to be declared as `{ name, role }` in `spec.owners` (the format produced by [`@thecodingsheikh/backstage-plugin-multi-owner`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/multi-owner/README.md)). Plain-string shorthand owners have no role and are denied when the annotation is set.
+The common package `@thecodingsheikh/backstage-plugin-entity-scaffolder-common` exports:
 
-### Annotation
+-   **`entityScaffolderEditPermission`** — permission name `entity-scaffolder.edit`, action `update`, `resourceType: catalog-entity`.
 
-```yaml
-metadata:
-  annotations:
-    backstage.io/scaffolder-edit-roles: 'edit,admin'
-```
+Because the permission's resource type is `catalog-entity`, your existing catalog conditional rules (`IS_ENTITY_OWNER`, `HAS_ANNOTATION`, `IS_ENTITY_KIND`, …) apply to it directly — no custom rule code is needed.
 
-### Wiring into `EntityPage.tsx` with multi-owner
+### Installation
 
-Because the identity check is async, wire it into a **function component** so you can use the `useCanEditEntityScaffolder` hook and conditionally render the `EntityLayout.Route`. Returning `false` from the JSX hides the tab entirely — it does not render at all.
+1.  Install the common package (it's a transitive dep of the frontend plugin, but your permission backend or policy provider may need it too):
 
-```typescript jsx
-// In packages/app/src/components/catalog/EntityPage.tsx
-import { useEntity } from '@backstage/plugin-catalog-react';
-import {
-  EntityScaffolderContent,
-  isEntityScaffolderAvailable,
-  useCanEditEntityScaffolder,
-} from '@thecodingsheikh/backstage-plugin-entity-scaffolder';
+    ```bash
+    yarn --cwd packages/backend add @thecodingsheikh/backstage-plugin-entity-scaffolder-common
+    ```
 
-const ServiceEntityPage = () => {
-  const { entity } = useEntity();
-  const { allowed: canEditScaffolder } = useCanEditEntityScaffolder(entity);
+2.  Make sure `@backstage/plugin-permission-backend` (and a policy provider, e.g. the RHDH RBAC plugin) is installed and wired up. The frontend already calls `usePermission` against `entity-scaffolder.edit` — without a permission backend, the result defaults to **allowed**.
 
-  return (
-    <EntityLayout>
-      {/* ... other routes */}
+### RHDH policy examples
 
-      {canEditScaffolder && (
-        <EntityLayout.Route
-          path="/entity-scaffolder"
-          title="manage"
-          if={isEntityScaffolderAvailable}
-        >
-          <EntityScaffolderContent />
-        </EntityLayout.Route>
-      )}
-
-      {/* ... other routes */}
-    </EntityLayout>
-  );
-};
-```
-
-> **Note:** The content component also short-circuits to `null` when the hook returns `allowed: false`, so direct navigation to `/entity-scaffolder` renders nothing. This is a UX-level guard — for true authorization use Backstage's permission framework in your scaffolder backend.
-
-### Example: mixing `edit` and `admin` per entity
-
-Say you have two services. Service A is edited by owners with the `edit` role; service B is restricted to owners with the `admin` role.
+#### Deny by default, allow platform admins outright
 
 ```yaml
-# Service A — any owner with role: edit may open the scaffolder tab
-apiVersion: backstage.io/v1alpha1
-kind: Component
-metadata:
-  name: service-a
-  annotations:
-    backstage.io/scaffolder-edit-roles: 'edit'
-    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
-    backstage.io/last-applied-configuration: '{"name":"service-a","firstRun":false}'
-spec:
-  type: service
-  lifecycle: production
-  owners:
-    - { name: group:default/team-a, role: edit }
-    - { name: group:default/auditors, role: viewer }   # tab hidden for these
+rbac-policy.csv: |
+  p, role:default/all_users, entity-scaffolder.edit, update, deny
+  p, role:default/platform_admins, entity-scaffolder.edit, update, allow
+
+  g, group:default/user, role:default/all_users
+  g, group:default/platform, role:default/platform_admins
 ```
 
+#### Owners of the entity are allowed (via `IS_ENTITY_OWNER`)
+
 ```yaml
-# Service B — only platform admins may open the scaffolder tab
-apiVersion: backstage.io/v1alpha1
-kind: Component
+conditional-policies.yaml: |
+  ---
+  result: CONDITIONAL
+  roleEntityRef: role:default/all_users
+  pluginId: catalog
+  resourceType: catalog-entity
+  permissionMapping:
+    - entity-scaffolder.edit
+  conditions:
+    rule: IS_ENTITY_OWNER
+    resourceType: catalog-entity
+    params:
+      claims: ["$ownerRefs"]
+```
+
+`IS_ENTITY_OWNER` already works with entities using `@thecodingsheikh/backstage-plugin-multi-owner`, because the multi-owner catalog processor emits an `ownedBy` relation for every entry in `spec.owners` — regardless of the owner's `role`.
+
+#### Role-aware owner checks (requires the multi-owner permission rule)
+
+If you want `backstage.io/scaffolder-edit-roles: 'admin'` to mean _"only owners whose `role: admin` may edit"_, install [`@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md#permission-rules) — it registers the `IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE` rule used below. The resulting policy looks like:
+
+```yaml
+conditional-policies.yaml: |
+  ---
+  result: CONDITIONAL
+  roleEntityRef: role:default/all_users
+  pluginId: catalog
+  resourceType: catalog-entity
+  permissionMapping:
+    - entity-scaffolder.edit
+  conditions:
+    anyOf:
+      # No edit-roles annotation → fall back to plain owner check
+      - allOf:
+          - not:
+              rule: HAS_ANNOTATION
+              resourceType: catalog-entity
+              params: { annotation: backstage.io/scaffolder-edit-roles }
+          - rule: IS_ENTITY_OWNER
+            resourceType: catalog-entity
+            params: { claims: ["$ownerRefs"] }
+      # Annotation present → only owners whose role matches the CSV in it
+      - rule: IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE
+        resourceType: catalog-entity
+        params: { annotation: backstage.io/scaffolder-edit-roles }
+```
+
+With that rule in place, per-entity annotations drive the role check:
+
+```yaml
+# only owners with role: admin may edit
 metadata:
-  name: service-b
   annotations:
     backstage.io/scaffolder-edit-roles: 'admin'
-    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
-    backstage.io/last-applied-configuration: '{"name":"service-b","firstRun":false}'
 spec:
-  type: service
-  lifecycle: production
   owners:
-    - { name: group:default/team-b, role: edit }       # tab hidden for these
-    - { name: group:default/platform, role: admin }
+    - { name: group:default/team, role: edit }       # denied
+    - { name: group:default/platform, role: admin }  # allowed
 ```
-
-You can also allow multiple roles at once, e.g. `backstage.io/scaffolder-edit-roles: 'edit,admin'` to let both groups edit.
 
 ### Redhat Developer Hub (RHDH)
 This plugin can be installed as a dynamic plugin, [Check here](https://github.com/TheCodingSheikh/backstage-plugins/releases/tag/19874628921-1)

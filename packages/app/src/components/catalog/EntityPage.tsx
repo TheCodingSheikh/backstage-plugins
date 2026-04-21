@@ -61,7 +61,7 @@ import {
 import {
   EntityScaffolderContent,
   isEntityScaffolderAvailable,
-} from '../../../../../plugins/entity-scaffolder/src';
+} from '../../../../../plugins/entity-scaffolder/entity-scaffolder/src';
 
 import {
   EntityMultiOwnerCard,

@@ -1,0 +1,120 @@
+# ---------------------------------------------------------------------------
+# Case 1 — no annotation.
+# Expected: guest sees and uses the scaffolder tab (fallback to IS_ENTITY_OWNER).
+# ---------------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rbac-demo-no-annotation
+  description: No scaffolder-edit-roles annotation. Any owner may edit.
+  annotations:
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: |
+      {"name":"rbac-demo-no-annotation","description":"Fallback owner check","environment":"staging","priority":5,"owner":"group:default/guests","visibility":"private","language":"typescript","framework":"express","enableDocker":true,"enableCI":true,"ports":[3000]}
+    backstage.io/immutable-fields: 'name'
+spec:
+  type: service
+  lifecycle: experimental
+  owner: guests
+  system: examples
+  owners:
+    - name: group:default/guests
+      role: edit
+---
+# ---------------------------------------------------------------------------
+# Case 2 — annotation: 'admin', guest group's role is 'edit'.
+# Expected: DENIED. The tab renders a "Not authorized" panel.
+# ---------------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rbac-demo-admin-required-denied
+  description: scaffolder-edit-roles=admin, guests has role edit → DENIED
+  annotations:
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: |
+      {"name":"rbac-demo-admin-required-denied","description":"Admin-only, guest has edit role","environment":"production","priority":8,"owner":"group:default/guests","visibility":"private","language":"typescript","framework":"express","enableDocker":true,"enableCI":true,"ports":[3000]}
+    backstage.io/scaffolder-edit-roles: 'admin'
+    backstage.io/immutable-fields: 'name'
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: examples
+  owners:
+    - name: group:default/guests
+      role: edit
+---
+# ---------------------------------------------------------------------------
+# Case 3 — annotation: 'admin', guest group's role is 'admin'.
+# Expected: ALLOWED. Workflow renders.
+# ---------------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rbac-demo-admin-required-allowed
+  description: scaffolder-edit-roles=admin, guests has role admin → ALLOWED
+  annotations:
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: |
+      {"name":"rbac-demo-admin-required-allowed","description":"Admin-only, guest has admin role","environment":"production","priority":9,"owner":"group:default/guests","visibility":"private","language":"typescript","framework":"express","enableDocker":true,"enableCI":true,"ports":[3000]}
+    backstage.io/scaffolder-edit-roles: 'admin'
+    backstage.io/immutable-fields: 'name'
+spec:
+  type: service
+  lifecycle: production
+  owner: guests
+  system: examples
+  owners:
+    - name: group:default/guests
+      role: admin
+---
+# ---------------------------------------------------------------------------
+# Case 4 — annotation: 'edit,admin', guest group's role is 'edit'.
+# Expected: ALLOWED (role is one of the allowed set).
+# ---------------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rbac-demo-multi-role-allowed
+  description: scaffolder-edit-roles=edit,admin, guests has role edit → ALLOWED
+  annotations:
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: |
+      {"name":"rbac-demo-multi-role-allowed","description":"Edit or admin, guest has edit","environment":"staging","priority":6,"owner":"group:default/guests","visibility":"private","language":"typescript","framework":"express","enableDocker":true,"enableCI":true,"ports":[3000]}
+    backstage.io/scaffolder-edit-roles: 'edit,admin'
+    backstage.io/immutable-fields: 'name'
+spec:
+  type: service
+  lifecycle: staging
+  owner: guests
+  system: examples
+  owners:
+    - name: group:default/guests
+      role: edit
+---
+# ---------------------------------------------------------------------------
+# Case 5 — annotation: 'admin', only the platform group has role admin.
+# Expected: DENIED. Guest is not in platform; no guest-owner with admin role.
+# ---------------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rbac-demo-platform-admin
+  description: scaffolder-edit-roles=admin, guests (edit) + platform (admin) → DENIED for guest
+  annotations:
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: |
+      {"name":"rbac-demo-platform-admin","description":"Platform owns as admin, guest only edits","environment":"production","priority":10,"owner":"group:default/platform","visibility":"private","language":"typescript","framework":"express","enableDocker":true,"enableCI":true,"ports":[3000]}
+    backstage.io/scaffolder-edit-roles: 'admin'
+    backstage.io/immutable-fields: 'name'
+spec:
+  type: service
+  lifecycle: production
+  owner: platform
+  system: examples
+  owners:
+    - name: group:default/platform
+      role: admin
+    - name: group:default/guests
+      role: edit

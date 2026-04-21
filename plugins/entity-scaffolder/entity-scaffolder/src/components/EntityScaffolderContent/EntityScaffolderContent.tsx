@@ -2,12 +2,14 @@
  * Copyright SeatGeek
  * Licensed under the terms of the Apache-2.0 license. See LICENSE file in project root for terms.
  */
-import { parseEntityRef } from '@backstage/catalog-model';
+import { parseEntityRef, stringifyEntityRef } from '@backstage/catalog-model';
 import { JsonObject, JsonValue } from '@backstage/types';
+import { Progress, WarningPanel } from '@backstage/core-components';
 import {
   MissingAnnotationEmptyState,
   useEntity,
 } from '@backstage/plugin-catalog-react';
+import { usePermission } from '@backstage/plugin-permission-react';
 import {
   ScaffolderFieldExtensions,
   SecretsContextProvider,
@@ -26,13 +28,13 @@ import {
 import { EmbeddedScaffolderWorkflow } from '@frontside/backstage-plugin-scaffolder-workflow';
 import { SelectFieldFromApiExtension } from '@roadiehq/plugin-scaffolder-frontend-module-http-request-field';
 import { ScaffolderFieldValidatorExtension } from '@thecodingsheikh/backstage-plugin-scaffolder-field-validator';
+import { entityScaffolderEditPermission } from '@thecodingsheikh/backstage-plugin-entity-scaffolder-common';
 
 import {
   ENTITY_SCAFFOLDER_CONFIG_ANNOTATION,
   ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION,
   ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION,
 } from '../../annotations';
-import { useCanEditEntityScaffolder } from '../../hooks/useCanEditEntityScaffolder';
 
 function safeParseConfig(value: string): JsonObject {
   try {
@@ -52,7 +54,11 @@ function safeParseConfig(value: string): JsonObject {
  */
 export const EntityScaffolderContent = () => {
   const { entity } = useEntity();
-  const { allowed, loading } = useCanEditEntityScaffolder(entity);
+
+  const { loading: permissionLoading, allowed } = usePermission({
+    permission: entityScaffolderEditPermission,
+    resourceRef: stringifyEntityRef(entity),
+  });
 
   const entityScaffolderConfigAnnotationValue =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_CONFIG_ANNOTATION];
@@ -63,8 +69,19 @@ export const EntityScaffolderContent = () => {
   const immutableFieldsAnnotation =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION];
 
-  if (loading || !allowed) {
-    return null;
+  if (permissionLoading) {
+    return <Progress />;
+  }
+
+  if (!allowed) {
+    return (
+      <WarningPanel
+        severity="info"
+        title="Not authorized"
+        defaultExpanded
+        message="You do not have permission to edit this entity through the scaffolder."
+      />
+    );
   }
 
   if (
