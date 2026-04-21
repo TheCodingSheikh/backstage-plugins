@@ -6,6 +6,7 @@ entities. A slim, catalog-provider-focused rewrite of
 no KRO, no scaffolder templates.
 
 [terasky]: https://github.com/TeraSky-OSS/backstage-plugins/tree/main/plugins/kubernetes-ingestor
+[mo]: https://www.npmjs.com/package/@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor
 
 ## Install
 
@@ -139,6 +140,7 @@ All keys use the configured `annotationPrefix`.
 | `<prefix>/exclude-from-catalog` | Always skip this workload. |
 | `<prefix>/name`, `/title`, `/description` | Override generated values. |
 | `<prefix>/owner` | Sets `spec.owner` (full entity ref or bare name). |
+| `<prefix>/owners` | Sets `spec.owners` for the [multi-owner processor][mo]. Compact syntax: comma/newline-separated, each entry `kind:name[:role]` or `kind:namespace/name[:role]`. A trailing `:role` is optional. JSON array form also accepted for explicit `{ name, role }`. Inherited from the Namespace when `inheritOwnerFromNamespace` is on. |
 | `<prefix>/system` | Sets `spec.system`. |
 | `<prefix>/system-type`, `/domain` | Applied to the generated System entity. |
 | `<prefix>/component-type`, `/lifecycle` | Override `spec.type` and `spec.lifecycle`. |

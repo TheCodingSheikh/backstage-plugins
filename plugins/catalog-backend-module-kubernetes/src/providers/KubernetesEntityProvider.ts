@@ -21,6 +21,13 @@ interface BackstageLink {
   [key: string]: string;
 }
 
+/**
+ * Shape emitted on `spec.owners` for consumption by
+ * `@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor`.
+ * String form is a Backstage entity ref; object form adds an optional role.
+ */
+type OwnerEntry = string | { name: string; role?: string };
+
 function splitAnnotationValues(value: string | undefined): string[] | undefined {
   if (value === undefined) return undefined;
   return value
@@ -37,6 +44,100 @@ function resolveOwnerRef(
   if (!ownerAnnotation) return `${namespacePrefix}/${defaultOwner}`;
   if (ownerAnnotation.includes(':')) return ownerAnnotation;
   return `${namespacePrefix}/${ownerAnnotation}`;
+}
+
+/**
+ * Splits a single owner segment into ref + optional role. Examples:
+ *   - `group:platform-team`            → ref, no role
+ *   - `group:platform-team:leads`      → ref + role "leads"
+ *   - `user:default/alice`             → ref, no role
+ *   - `group:default/sre:oncall`       → ref + role "oncall"
+ *   - `platform-team`                  → bare name, no role
+ *
+ * Rule: the role is whatever follows the *last* `:` that comes after the
+ * ref's `kind:name` structure — i.e. after a `/` if present, or the second
+ * `:` if no `/`. Bare names (no kind) can't carry a role in compact form.
+ */
+function parseOwnerSegment(
+  raw: string,
+  namespacePrefix: string,
+  defaultOwner: string,
+): OwnerEntry | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  let refPart = trimmed;
+  let role: string | undefined;
+
+  const slashIdx = trimmed.indexOf('/');
+  if (slashIdx >= 0) {
+    const roleColonIdx = trimmed.indexOf(':', slashIdx);
+    if (roleColonIdx >= 0) {
+      refPart = trimmed.substring(0, roleColonIdx);
+      role = trimmed.substring(roleColonIdx + 1).trim() || undefined;
+    }
+  } else {
+    const colonIndices: number[] = [];
+    for (let i = 0; i < trimmed.length; i++) {
+      if (trimmed[i] === ':') colonIndices.push(i);
+    }
+    if (colonIndices.length >= 2) {
+      refPart = trimmed.substring(0, colonIndices[1]);
+      role = trimmed.substring(colonIndices[1] + 1).trim() || undefined;
+    }
+  }
+
+  const resolved = resolveOwnerRef(refPart, namespacePrefix, defaultOwner);
+  return role ? { name: resolved, role } : resolved;
+}
+
+/**
+ * Parses the `<prefix>/owners` annotation. Two input formats:
+ *   - Compact: comma/newline-separated, each segment `kind:name[:role]`
+ *     or `kind:namespace/name[:role]` or bare `name` (no role).
+ *   - JSON: an array of strings (same compact syntax per string) or
+ *     `{ name, role? }` objects. Use this when your names themselves need
+ *     escaping or when you want to be fully explicit.
+ */
+function parseOwnersAnnotation(
+  value: string,
+  namespacePrefix: string,
+  defaultOwner: string,
+): OwnerEntry[] {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        const out: OwnerEntry[] = [];
+        for (const entry of parsed) {
+          if (typeof entry === 'string') {
+            const e = parseOwnerSegment(entry, namespacePrefix, defaultOwner);
+            if (e) out.push(e);
+          } else if (
+            entry &&
+            typeof entry === 'object' &&
+            typeof entry.name === 'string'
+          ) {
+            const name = resolveOwnerRef(
+              entry.name.trim(),
+              namespacePrefix,
+              defaultOwner,
+            );
+            out.push(entry.role ? { name, role: String(entry.role) } : name);
+          }
+        }
+        return out;
+      }
+    } catch {
+      // fall through to compact
+    }
+  }
+
+  return value
+    .split(/[,\n]/)
+    .map(s => parseOwnerSegment(s, namespacePrefix, defaultOwner))
+    .filter((e): e is OwnerEntry => e !== null);
 }
 
 /**
@@ -226,6 +327,45 @@ export class KubernetesEntityProvider implements EntityProvider {
     }
 
     return resolveOwnerRef(undefined, namespacePrefix, defaultOwner);
+  }
+
+  /**
+   * Resolves the optional multi-owner list. Falls through the same
+   * precedence as single owner: workload > namespace (if inheritance on) >
+   * none. Returns undefined when no `<prefix>/owners` annotation is present.
+   */
+  private async resolveOwnersWithInheritance(
+    workloadAnnotations: Record<string, string>,
+    namespaceName: string | undefined,
+    clusterName: string,
+    namespacePrefix: string,
+  ): Promise<OwnerEntry[] | undefined> {
+    const prefix = this.providerConfig.annotationPrefix;
+    const defaultOwner = this.providerConfig.defaultOwner;
+    const ownersKey = `${prefix}/owners`;
+
+    const fromWorkload = workloadAnnotations[ownersKey];
+    if (fromWorkload) {
+      const parsed = parseOwnersAnnotation(fromWorkload, namespacePrefix, defaultOwner);
+      return parsed.length > 0 ? parsed : undefined;
+    }
+
+    if (this.providerConfig.inheritOwnerFromNamespace && namespaceName) {
+      const namespaceAnnotations = await this.fetchNamespaceAnnotations(
+        namespaceName,
+        clusterName,
+      );
+      if (namespaceAnnotations?.[ownersKey]) {
+        const parsed = parseOwnersAnnotation(
+          namespaceAnnotations[ownersKey],
+          namespacePrefix,
+          defaultOwner,
+        );
+        return parsed.length > 0 ? parsed : undefined;
+      }
+    }
+
+    return undefined;
   }
 
   private extractCustomAnnotations(
@@ -501,6 +641,12 @@ export class KubernetesEntityProvider implements EntityProvider {
       resource.clusterName,
       systemReferencesNamespaceValue,
     );
+    const multiOwners = await this.resolveOwnersWithInheritance(
+      annotations,
+      namespace,
+      resource.clusterName,
+      systemReferencesNamespaceValue,
+    );
 
     const systemEntity: Entity = {
       apiVersion: 'backstage.io/v1alpha1',
@@ -512,6 +658,7 @@ export class KubernetesEntityProvider implements EntityProvider {
       },
       spec: {
         owner: systemOwner,
+        ...(multiOwners ? { owners: multiOwners } : {}),
         type: annotations[`${prefix}/system-type`] || 'kubernetes-namespace',
         ...(annotations[`${prefix}/domain`]
           ? { domain: annotations[`${prefix}/domain`] }
@@ -608,6 +755,7 @@ export class KubernetesEntityProvider implements EntityProvider {
           'service',
         lifecycle: annotations[`${prefix}/lifecycle`] || 'production',
         owner: componentOwner,
+        ...(multiOwners ? { owners: multiOwners } : {}),
         ...(componentSystem ? { system: componentSystem } : {}),
         dependsOn: splitAnnotationValues(annotations[`${prefix}/dependsOn`]),
         ...(entityKind === 'Component'
