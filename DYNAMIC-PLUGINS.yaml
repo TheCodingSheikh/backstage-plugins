@@ -125,7 +125,7 @@ plugins:
   - repo: RoadieHQ/roadie-backstage-plugins
     ref: e231713f2276d310649706a26d25753b1e823d67
     path: plugins/scaffolder-field-extensions/scaffolder-frontend-module-http-request-field
-    version: 2.3.1
+    version: 2.3.0
     config: |
       pluginConfig:
         dynamicPlugins:
