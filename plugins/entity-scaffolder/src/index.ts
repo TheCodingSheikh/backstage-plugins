@@ -11,3 +11,11 @@
 
 export { entityScaffolderPlugin, EntityScaffolderContent } from './plugin';
 export { isEntityScaffolderAvailable } from './utils/isEntityScaffolderAvailable';
+export { canEditEntity, getAllowedEditRoles } from './utils/canEditEntity';
+export { useCanEditEntityScaffolder } from './hooks/useCanEditEntityScaffolder';
+export {
+  ENTITY_SCAFFOLDER_CONFIG_ANNOTATION,
+  ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION,
+  ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION,
+  ENTITY_SCAFFOLDER_EDIT_ROLES_ANNOTATION,
+} from './annotations';

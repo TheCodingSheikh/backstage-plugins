@@ -41,6 +41,102 @@ This plugin embeds a Backstage Scaffolder workflow into an entity's page, allowi
     );
     ```
 
+## RBAC for edit
+
+You can restrict who is allowed to open the scaffolder tab on a given entity by adding the `backstage.io/scaffolder-edit-roles` annotation. The value is a comma-separated list of role names. The tab is shown only to users who appear in the entity's `spec.owners` with a `role` matching one of those names.
+
+-   **Fallback**: if the annotation is absent, the tab is shown to everyone (backwards compatible).
+-   **Owner format**: role-based checks require the owner to be declared as `{ name, role }` in `spec.owners` (the format produced by [`@thecodingsheikh/backstage-plugin-multi-owner`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/multi-owner/README.md)). Plain-string shorthand owners have no role and are denied when the annotation is set.
+
+### Annotation
+
+```yaml
+metadata:
+  annotations:
+    backstage.io/scaffolder-edit-roles: 'edit,admin'
+```
+
+### Wiring into `EntityPage.tsx` with multi-owner
+
+Because the identity check is async, wire it into a **function component** so you can use the `useCanEditEntityScaffolder` hook and conditionally render the `EntityLayout.Route`. Returning `false` from the JSX hides the tab entirely — it does not render at all.
+
+```typescript jsx
+// In packages/app/src/components/catalog/EntityPage.tsx
+import { useEntity } from '@backstage/plugin-catalog-react';
+import {
+  EntityScaffolderContent,
+  isEntityScaffolderAvailable,
+  useCanEditEntityScaffolder,
+} from '@thecodingsheikh/backstage-plugin-entity-scaffolder';
+
+const ServiceEntityPage = () => {
+  const { entity } = useEntity();
+  const { allowed: canEditScaffolder } = useCanEditEntityScaffolder(entity);
+
+  return (
+    <EntityLayout>
+      {/* ... other routes */}
+
+      {canEditScaffolder && (
+        <EntityLayout.Route
+          path="/entity-scaffolder"
+          title="manage"
+          if={isEntityScaffolderAvailable}
+        >
+          <EntityScaffolderContent />
+        </EntityLayout.Route>
+      )}
+
+      {/* ... other routes */}
+    </EntityLayout>
+  );
+};
+```
+
+> **Note:** The content component also short-circuits to `null` when the hook returns `allowed: false`, so direct navigation to `/entity-scaffolder` renders nothing. This is a UX-level guard — for true authorization use Backstage's permission framework in your scaffolder backend.
+
+### Example: mixing `edit` and `admin` per entity
+
+Say you have two services. Service A is edited by owners with the `edit` role; service B is restricted to owners with the `admin` role.
+
+```yaml
+# Service A — any owner with role: edit may open the scaffolder tab
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: service-a
+  annotations:
+    backstage.io/scaffolder-edit-roles: 'edit'
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: '{"name":"service-a","firstRun":false}'
+spec:
+  type: service
+  lifecycle: production
+  owners:
+    - { name: group:default/team-a, role: edit }
+    - { name: group:default/auditors, role: viewer }   # tab hidden for these
+```
+
+```yaml
+# Service B — only platform admins may open the scaffolder tab
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: service-b
+  annotations:
+    backstage.io/scaffolder-edit-roles: 'admin'
+    backstage.io/scaffolder-template: template:default/entity-scaffolder-template
+    backstage.io/last-applied-configuration: '{"name":"service-b","firstRun":false}'
+spec:
+  type: service
+  lifecycle: production
+  owners:
+    - { name: group:default/team-b, role: edit }       # tab hidden for these
+    - { name: group:default/platform, role: admin }
+```
+
+You can also allow multiple roles at once, e.g. `backstage.io/scaffolder-edit-roles: 'edit,admin'` to let both groups edit.
+
 ### Redhat Developer Hub (RHDH)
 This plugin can be installed as a dynamic plugin, [Check here](https://github.com/TheCodingSheikh/backstage-plugins/releases/tag/19874628921-1)
 

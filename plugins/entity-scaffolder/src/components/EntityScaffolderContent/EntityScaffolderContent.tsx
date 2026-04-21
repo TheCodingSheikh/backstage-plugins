@@ -32,6 +32,7 @@ import {
   ENTITY_SCAFFOLDER_TEMPLATE_ANNOTATION,
   ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION,
 } from '../../annotations';
+import { useCanEditEntityScaffolder } from '../../hooks/useCanEditEntityScaffolder';
 
 function safeParseConfig(value: string): JsonObject {
   try {
@@ -51,6 +52,7 @@ function safeParseConfig(value: string): JsonObject {
  */
 export const EntityScaffolderContent = () => {
   const { entity } = useEntity();
+  const { allowed, loading } = useCanEditEntityScaffolder(entity);
 
   const entityScaffolderConfigAnnotationValue =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_CONFIG_ANNOTATION];
@@ -60,6 +62,10 @@ export const EntityScaffolderContent = () => {
 
   const immutableFieldsAnnotation =
     entity.metadata.annotations?.[ENTITY_SCAFFOLDER_IMMUTABLE_FIELDS_ANNOTATION];
+
+  if (loading || !allowed) {
+    return null;
+  }
 
   if (
     !entityScaffolderConfigAnnotationValue ||
