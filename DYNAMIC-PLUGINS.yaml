@@ -66,29 +66,27 @@ plugins:
                       allOf:
                         - isEntityScaffolderAvailable
 
-  - repo: terasky-oss/backstage-plugins
-    ref: main
-    path: plugins/kubernetes-ingestor
-    version: 3.14.0
-    keepSchemas: [kubernetesIngestor]
+  - path: plugins/catalog-backend-module-kubernetes
+    version: 0.1.0
+    keepSchemas: [catalog]
     customCommand: yarn tsc
     config: |
       pluginConfig:
-        kubernetesIngestor:
-          mappings:
-            namespaceModel: 'default'
-            nameModel: 'name-kind'
-            titleModel: 'name'
-            systemModel: 'namespace'
-            referencesNamespaceModel: 'default'
-          components:
-            enabled: true
-            taskRunner:
-              frequency: 20
-              timeout: 600
-            onlyIngestAnnotatedResources: true
-          crossplane:
-            enabled: false
+        catalog:
+          providers:
+            kubernetes:
+              main:
+                mappings:
+                  namespaceModel: 'default'
+                  nameModel: 'name-kind'
+                  titleModel: 'name'
+                  systemModel: 'namespace'
+                  referencesNamespaceModel: 'default'
+                components:
+                  enabled: true
+                schedule:
+                  frequency: { seconds: 20 }
+                  timeout: { seconds: 600 }
 
   - path: plugins/multi-owner/multi-owner
     version: 1.0.4

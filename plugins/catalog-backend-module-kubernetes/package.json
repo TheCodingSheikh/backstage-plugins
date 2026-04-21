@@ -1,0 +1,72 @@
+{
+  "name": "@thecodingsheikh/backstage-plugin-catalog-backend-module-kubernetes",
+  "version": "0.1.0",
+  "description": "Backstage catalog backend module that ingests Kubernetes workloads and CRDs as entities. Config lives under catalog.providers.kubernetes.",
+  "keywords": [
+    "backstage",
+    "backstage-plugin",
+    "backstage-catalog",
+    "catalog",
+    "kubernetes",
+    "k8s",
+    "crd",
+    "argocd"
+  ],
+  "license": "MIT",
+  "author": "",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "configSchema": "config.d.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "types": "dist/index.d.ts"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "catalog",
+    "pluginPackage": "@backstage/plugin-catalog-backend"
+  },
+  "scripts": {
+    "start": "backstage-cli package start",
+    "build": "backstage-cli package build",
+    "lint": "backstage-cli package lint",
+    "test": "backstage-cli package test",
+    "clean": "backstage-cli package clean",
+    "prepack": "backstage-cli package prepack",
+    "postpack": "backstage-cli package postpack"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "^1.9.0",
+    "@backstage/catalog-model": "^1.8.0",
+    "@backstage/config": "^1.3.7",
+    "@backstage/errors": "^1.2.7",
+    "@backstage/plugin-catalog-node": "^2.2.0",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^2.7.0",
+    "p-limit": "^3.1.0",
+    "pluralize": "^8.0.0"
+  },
+  "devDependencies": {
+    "@backstage/backend-test-utils": "^1.11.2",
+    "@backstage/cli": "^0.36.1",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node-fetch": "^2.6.11",
+    "@types/pluralize": "^0.0.33",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "dist",
+    "config.d.ts",
+    "README.md",
+    "LICENSE"
+  ]
+}

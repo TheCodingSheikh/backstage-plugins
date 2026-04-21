@@ -74,4 +74,7 @@ backend.add(
 
 backend.add(import('../../../plugins/multi-owner/catalog-backend-module-multi-owner-processor/src'));
 
+backend.add(import('../../../plugins/catalog-backend-module-kubernetes/src'));
+
+
 backend.start();
