@@ -46,7 +46,7 @@
 
 plugins:
   - path: plugins/entity-scaffolder
-    version: 0.4.0
+    version: 0.4.1
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -67,7 +67,7 @@ plugins:
                         - isEntityScaffolderAvailable
 
   - path: plugins/catalog-backend-module-kubernetes
-    version: 0.1.1
+    version: 0.1.2
     keepSchemas: [catalog]
     customCommand: yarn tsc
     config: |
@@ -89,7 +89,7 @@ plugins:
                   timeout: { seconds: 600 }
 
   - path: plugins/multi-owner/multi-owner
-    version: 1.0.4
+    version: 1.0.5
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -108,11 +108,11 @@ plugins:
                         - isMultiOwnerAvailable
 
   - path: plugins/multi-owner/catalog-backend-module-multi-owner-processor
-    version: 1.0.4
+    version: 1.0.5
     customCommand: yarn tsc
 
   - path: plugins/scaffolder-field-validator
-    version: 1.2.0
+    version: 1.2.1
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -121,8 +121,9 @@ plugins:
               scaffolderFieldExtensions:
                 - importName: ScaffolderFieldValidatorExtension
 
+  # Roadie's main is still on Backstage 1.44.2 — closest available pin; no 1.45.x source exists yet.
   - repo: RoadieHQ/roadie-backstage-plugins
-    ref: main
+    ref: e231713f2276d310649706a26d25753b1e823d67
     path: plugins/scaffolder-field-extensions/scaffolder-frontend-module-http-request-field
     version: 2.3.0
     config: |
@@ -134,10 +135,10 @@ plugins:
                 - importName: SelectFieldFromApiExtension
 
   - repo: backstage/community-plugins
-    ref: main
+    ref: 3be39dd9870b7b36822da3b93864b7dad9d434eb
     workspaceDir: workspaces/vault
     path: workspaces/vault/plugins/vault
-    version: 0.19.0
+    version: 0.13.0
     keepSchemas: [vault]
     customCommand: yarn tsc
     config: |
@@ -167,18 +168,18 @@ plugins:
                         - hasAnnotation: vault.io/secrets-path
 
   - repo: backstage/community-plugins
-    ref: main
+    ref: 3be39dd9870b7b36822da3b93864b7dad9d434eb
     workspaceDir: workspaces/vault
     path: workspaces/vault/plugins/vault-backend
-    version: 0.21.0
+    version: 0.15.0
     customCommand: yarn tsc
 
 
   - repo: backstage/community-plugins
-    ref: main
+    ref: bc8d7282d0f9f313198df021db3470364fb52ad2
     workspaceDir: workspaces/grafana
     path: workspaces/grafana/plugins/grafana
-    version: 0.17.0
+    version: 0.10.1
     keepSchemas: [grafana]
     customCommand: yarn tsc
     config: |

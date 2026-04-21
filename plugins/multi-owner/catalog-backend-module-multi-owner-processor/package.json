@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -28,14 +28,14 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/backend-plugin-api": "^1.1.1",
-    "@backstage/catalog-model": "^1.7.3",
-    "@backstage/plugin-catalog-common": "^1.1.2",
-    "@backstage/plugin-catalog-node": "^1.15.1",
+    "@backstage/backend-plugin-api": "^1.5.0",
+    "@backstage/catalog-model": "^1.7.6",
+    "@backstage/plugin-catalog-common": "^1.1.7",
+    "@backstage/plugin-catalog-node": "^1.20.0",
     "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.4"
   },
   "devDependencies": {
-    "@backstage/backend-test-utils": "^1.2.1",
+    "@backstage/backend-test-utils": "^1.10.1",
     "@backstage/cli": "^0.34.5"
   },
   "files": [
