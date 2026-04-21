@@ -45,7 +45,7 @@
 #                             Applied after `plugin export`, before `npm pack`.
 
 plugins:
-  - path: plugins/entity-scaffolder
+  - path: plugins/entity-scaffolder/entity-scaffolder
     version: 0.4.2
     config: |
       pluginConfig:
