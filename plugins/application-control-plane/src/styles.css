@@ -1,0 +1,345 @@
+:root {
+  --ncai-blue: #06c;
+  --ncai-navy: #002855;
+  --ncai-border: #d2d2d2;
+  --ncai-text: #151515;
+  --ncai-muted: #4f5255;
+}
+.ncai-page,
+.ncai-application-page {
+  color: var(--ncai-text);
+  font-family: RedHatText, "Red Hat Text", Arial, sans-serif;
+  background: #fff;
+  min-height: 100%;
+  padding: 28px 32px;
+}
+.ncai-page h1,
+.ncai-application-page h1 {
+  font-family: RedHatDisplay, "Red Hat Display", Arial, sans-serif;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 10px;
+}
+.ncai-page h2,
+.ncai-application-page h2 {
+  font-size: 20px;
+  line-height: 1.35;
+  margin: 0;
+}
+.ncai-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  min-height: 174px;
+}
+.ncai-hero p {
+  color: var(--ncai-muted);
+  font-size: 16px;
+  margin: 0 0 22px;
+}
+.ncai-quick {
+  border: 1px solid var(--ncai-border);
+  border-radius: 3px;
+  width: 300px;
+}
+.ncai-quick h2 {
+  font-size: 14px;
+  padding: 16px;
+}
+.ncai-quick a {
+  align-items: center;
+  border-top: 1px solid #e7e7e7;
+  color: var(--ncai-blue);
+  display: flex;
+  gap: 14px;
+  padding: 13px 16px;
+  text-decoration: none;
+}
+.ncai-quick a span {
+  flex: 1;
+}
+.ncai-panel {
+  border: 1px solid var(--ncai-border);
+  border-radius: 3px;
+  margin: 14px 0;
+  background: #fff;
+}
+.ncai-panel > h2,
+.ncai-panel-heading {
+  border-bottom: 1px solid var(--ncai-border);
+  padding: 14px 18px;
+}
+.ncai-warning {
+  color: #f0ab00;
+  font-size: 18px;
+  margin-right: 10px;
+}
+.ncai-attention-row {
+  align-items: center;
+  border-bottom: 1px solid #e7e7e7;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 42px minmax(180px, 1.7fr) 1fr 1fr 150px 170px;
+  padding: 10px 18px;
+}
+.ncai-attention-row small {
+  color: var(--ncai-muted);
+  display: block;
+}
+.ncai-app-icon,
+.ncai-mini-icon {
+  background: #fce8e8;
+  color: #c9190b;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 3px;
+}
+.ncai-app-icon {
+  height: 38px;
+  width: 38px;
+}
+.ncai-mini-icon {
+  height: 28px;
+  margin-right: 12px;
+  width: 32px;
+}
+.ncai-outline-action,
+.ncai-primary-action {
+  border: 1px solid var(--ncai-blue);
+  border-radius: 3px;
+  padding: 8px 14px;
+  text-align: center;
+  text-decoration: none;
+}
+.ncai-primary-action {
+  background: var(--ncai-blue);
+  color: #fff;
+}
+.ncai-panel-heading {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+.ncai-panel-heading i,
+.ncai-title-row i {
+  background: var(--ncai-border);
+  height: 22px;
+  width: 1px;
+}
+.ncai-panel-heading span {
+  color: var(--ncai-muted);
+  font-size: 14px;
+}
+.ncai-table-wrap {
+  overflow-x: auto;
+}
+.ncai-panel table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.ncai-panel th,
+.ncai-panel td {
+  border-bottom: 1px solid var(--ncai-border);
+  padding: 12px 18px;
+  text-align: left;
+  white-space: nowrap;
+}
+.ncai-panel th {
+  font-weight: 500;
+}
+.ncai-panel td:last-child {
+  text-align: right;
+}
+.ncai-status {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+.ncai-status.is-good {
+  color: #3e8635;
+}
+.ncai-status.is-bad {
+  color: #c9190b;
+}
+.ncai-status.is-unknown {
+  color: #6a6e73;
+}
+.ncai-empty {
+  color: var(--ncai-muted);
+  padding: 20px;
+}
+.ncai-activity {
+  min-height: 130px;
+}
+.ncai-activity ol {
+  list-style: none;
+  margin: 0;
+  padding: 14px 20px;
+}
+.ncai-activity li {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 30px 1fr auto;
+  padding: 8px 0;
+}
+.ncai-activity li small {
+  color: var(--ncai-muted);
+}
+.ncai-state {
+  display: grid;
+  min-height: 420px;
+  place-items: center;
+}
+.ncai-app-header {
+  margin: -28px -32px 0;
+  padding: 22px 32px;
+  border-bottom: 1px solid var(--ncai-border);
+}
+.ncai-app-header > p {
+  margin: 0 0 12px;
+}
+.ncai-title-row,
+.ncai-title-row > div {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+.ncai-title-row {
+  justify-content: space-between;
+}
+.ncai-title-row h1 {
+  margin: 0;
+}
+.ncai-summary {
+  align-items: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr 1fr 1.5fr;
+  margin: 0 -32px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--ncai-border);
+}
+.ncai-summary > div {
+  border-right: 1px solid var(--ncai-border);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 0 28px;
+}
+.ncai-summary > div:first-child {
+  padding-left: 0;
+}
+.ncai-summary > div:last-child {
+  border: 0;
+}
+.ncai-summary small {
+  font-size: 13px;
+}
+.ncai-admin-links a {
+  display: block;
+  margin: 0 0 8px;
+}
+.ncai-tabs {
+  display: flex;
+  gap: 28px;
+  margin: 0 -32px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--ncai-border);
+}
+.ncai-tabs button {
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font: inherit;
+  padding: 14px 8px;
+}
+.ncai-tabs button[aria-selected="true"] {
+  border-color: var(--ncai-blue);
+  color: var(--ncai-blue);
+}
+.ncai-tab-content {
+  margin: 0 -16px;
+}
+.ncai-overview-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+}
+.ncai-panel .pf-v6-c-button {
+  margin: 18px;
+}
+.ncai-details dl {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  padding: 18px;
+}
+.ncai-details dt {
+  font-weight: 600;
+}
+.ncai-details dd {
+  margin: 0;
+}
+.ncai-owner {
+  display: block;
+  margin: 0 0 8px;
+}
+.ncai-owner b {
+  background: #e7f1fa;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-left: 8px;
+  padding: 3px 7px;
+}
+.pf-v6-screen-reader {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+@media (max-width: 900px) {
+  .ncai-page,
+  .ncai-application-page {
+    padding: 20px;
+  }
+  .ncai-hero {
+    display: block;
+  }
+  .ncai-quick {
+    margin-top: 20px;
+    width: auto;
+  }
+  .ncai-attention-row {
+    grid-template-columns: 36px 1fr;
+  }
+  .ncai-attention-row > *:nth-child(n + 3) {
+    grid-column: 2;
+  }
+  .ncai-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .ncai-summary {
+    grid-template-columns: 1fr 1fr;
+    margin: 0 -20px;
+    padding: 20px;
+  }
+  .ncai-summary > div {
+    border-bottom: 1px solid var(--ncai-border);
+    padding: 14px;
+  }
+  .ncai-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ncai-tabs {
+    margin: 0 -20px;
+    overflow-x: auto;
+    padding: 0 20px;
+  }
+  .ncai-app-header {
+    margin: -20px -20px 0;
+    padding: 20px;
+  }
+}

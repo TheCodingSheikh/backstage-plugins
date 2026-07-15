@@ -1,0 +1,50 @@
+name: Build application control plane plugins
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/application-control-plane/**"
+      - "plugins/application-control-plane-backend/**"
+      - "plugins/application-control-plane-scaffolder/**"
+      - ".github/workflows/build-application-control-plane.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: yarn
+
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn tsc
+
+      - name: Export and package plugins
+        run: |
+          set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          for plugin in \
+            plugins/application-control-plane-backend \
+            plugins/application-control-plane-scaffolder \
+            plugins/application-control-plane; do
+            cd "$GITHUB_WORKSPACE/$plugin"
+            npx @red-hat-developer-hub/cli@latest plugin export
+            cd dist-dynamic
+            npm pack --pack-destination "$GITHUB_WORKSPACE/dist"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: application-control-plane-dynamic-plugins
+          path: dist/*.tgz
+          if-no-files-found: error
+          retention-days: 14

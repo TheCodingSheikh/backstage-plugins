@@ -1,0 +1,33 @@
+{
+  "name": "@ncai/backstage-plugin-scaffolder-backend-module-application-control-plane",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.cjs.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && backstage-cli package build",
+    "export-dynamic": "janus-cli package export-dynamic-plugin --clean",
+    "test": "backstage-cli package test"
+  },
+  "backstage": {
+    "role": "backend-plugin-module",
+    "pluginId": "scaffolder",
+    "pluginPackage": "@backstage/plugin-scaffolder-backend",
+    "supported-versions": "1.45.3"
+  },
+  "dependencies": {
+    "@backstage/backend-plugin-api": "1.4.2",
+    "@backstage/catalog-model": "1.7.5",
+    "@backstage/plugin-catalog-node": "1.19.0",
+    "@backstage/plugin-scaffolder-node": "0.10.0",
+    "yaml": "2.8.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@backstage/cli": "0.34.1",
+    "@janus-idp/cli": "3.6.0",
+    "@types/node": "20.19.9",
+    "typescript": "5.8.3",
+    "yarn": "1.22.22"
+  }
+}
