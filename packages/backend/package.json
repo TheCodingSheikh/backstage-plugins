@@ -45,6 +45,7 @@
     "@backstage/plugin-search-backend-node": "^1.3.17",
     "@backstage/plugin-signals-backend": "^0.3.10",
     "@backstage/plugin-techdocs-backend": "^2.1.2",
+    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "^0.2.0",
     "app": "link:../app",
     "better-sqlite3": "^12.0.0",
     "node-gyp": "^10.0.0",

@@ -46,7 +46,7 @@
 
 plugins:
   - path: plugins/entity-scaffolder/entity-scaffolder
-    version: 0.4.2
+    version: 0.5.0
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -111,6 +111,10 @@ plugins:
     version: 1.0.6
     customCommand: yarn tsc
 
+  - path: plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder
+    version: 0.1.0
+    customCommand: yarn tsc
+
   - path: plugins/scaffolder-field-validator
     version: 1.2.1
     config: |
@@ -173,7 +177,6 @@ plugins:
     path: workspaces/vault/plugins/vault-backend
     version: 0.15.0
     customCommand: yarn tsc
-
 
   - repo: backstage/community-plugins
     ref: bc8d7282d0f9f313198df021db3470364fb52ad2

@@ -3690,7 +3690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-catalog-common@npm:^1.1.6, @backstage/plugin-catalog-common@npm:^1.1.7, @backstage/plugin-catalog-common@npm:^1.1.8, @backstage/plugin-catalog-common@npm:^1.1.9":
+"@backstage/plugin-catalog-common@npm:^1.1.7, @backstage/plugin-catalog-common@npm:^1.1.8, @backstage/plugin-catalog-common@npm:^1.1.9":
   version: 1.1.9
   resolution: "@backstage/plugin-catalog-common@npm:1.1.9"
   dependencies:
@@ -13102,6 +13102,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@thecodingsheikh/backstage-plugin-catalog-backend-module-entity-scaffolder@workspace:plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder":
+  version: 0.0.0-use.local
+  resolution: "@thecodingsheikh/backstage-plugin-catalog-backend-module-entity-scaffolder@workspace:plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.5.0"
+    "@backstage/backend-test-utils": "npm:^1.10.1"
+    "@backstage/catalog-model": "npm:^1.7.6"
+    "@backstage/cli": "npm:^0.34.5"
+    "@backstage/plugin-catalog-backend": "npm:^3.6.0"
+    "@backstage/plugin-catalog-node": "npm:^1.20.0"
+    "@backstage/plugin-permission-common": "npm:^0.9.0"
+    "@backstage/plugin-permission-node": "npm:^0.10.7"
+    "@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor": "npm:^1.0.6"
+    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "npm:^0.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@thecodingsheikh/backstage-plugin-catalog-backend-module-kubernetes@workspace:plugins/catalog-backend-module-kubernetes":
   version: 0.0.0-use.local
   resolution: "@thecodingsheikh/backstage-plugin-catalog-backend-module-kubernetes@workspace:plugins/catalog-backend-module-kubernetes"
@@ -13124,7 +13141,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor@workspace:plugins/multi-owner/catalog-backend-module-multi-owner-processor":
+"@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor@npm:^1.0.6, @thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor@workspace:plugins/multi-owner/catalog-backend-module-multi-owner-processor":
   version: 0.0.0-use.local
   resolution: "@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor@workspace:plugins/multi-owner/catalog-backend-module-multi-owner-processor"
   dependencies:
@@ -13139,12 +13156,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@thecodingsheikh/backstage-plugin-entity-scaffolder-common@npm:^0.1.0, @thecodingsheikh/backstage-plugin-entity-scaffolder-common@workspace:plugins/entity-scaffolder/entity-scaffolder-common":
+"@thecodingsheikh/backstage-plugin-entity-scaffolder-common@npm:^0.2.0, @thecodingsheikh/backstage-plugin-entity-scaffolder-common@workspace:plugins/entity-scaffolder/entity-scaffolder-common":
   version: 0.0.0-use.local
   resolution: "@thecodingsheikh/backstage-plugin-entity-scaffolder-common@workspace:plugins/entity-scaffolder/entity-scaffolder-common"
   dependencies:
     "@backstage/cli": "npm:^0.34.5"
-    "@backstage/plugin-catalog-common": "npm:^1.1.6"
     "@backstage/plugin-permission-common": "npm:^0.9.0"
   languageName: unknown
   linkType: soft
@@ -13193,7 +13209,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.0.0"
     "@testing-library/react": "npm:^14.0.0"
     "@testing-library/user-event": "npm:^14.0.0"
-    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "npm:^0.1.0"
+    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "npm:^0.2.0"
     "@thecodingsheikh/backstage-plugin-scaffolder-field-validator": "npm:^1.2.0"
     msw: "npm:^1.0.0"
     react: "npm:^16.13.1 || ^17.0.0 || ^18.0.0"
@@ -15609,6 +15625,7 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.3.17"
     "@backstage/plugin-signals-backend": "npm:^0.3.10"
     "@backstage/plugin-techdocs-backend": "npm:^2.1.2"
+    "@thecodingsheikh/backstage-plugin-entity-scaffolder-common": "npm:^0.2.0"
     app: "link:../app"
     better-sqlite3: "npm:^12.0.0"
     node-gyp: "npm:^10.0.0"

@@ -5,6 +5,7 @@
  */
 
 export {
+  RESOURCE_TYPE_ENTITY_SCAFFOLDER_ENTITY,
   entityScaffolderEditPermission,
   entityScaffolderPermissions,
 } from './permissions';

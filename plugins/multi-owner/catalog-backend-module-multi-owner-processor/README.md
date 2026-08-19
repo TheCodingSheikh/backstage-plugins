@@ -57,7 +57,7 @@ spec:
       role: operations
     - name: user:default/jane
       role: tech-lead
-    - group:default/qa-team  # string shorthand, no role
+    - group:default/qa-team # string shorthand, no role
 ```
 
 ## How It Works
@@ -82,10 +82,10 @@ Rules are registered automatically when the module is installed. Reference them 
 
 Allows entities where the subject appears in `spec.owners` with a role contained in a policy-supplied allowlist.
 
-| Param | Type | Meaning |
-|-------|------|---------|
+| Param    | Type       | Meaning                                                                                                   |
+| -------- | ---------- | --------------------------------------------------------------------------------------------------------- |
 | `claims` | `string[]` | Entity refs identifying the subject. Typically `["$ownerRefs"]` for the current user's group + user refs. |
-| `roles` | `string[]` | Roles on `spec.owners` entries that are allowed to match. |
+| `roles`  | `string[]` | Roles on `spec.owners` entries that are allowed to match.                                                 |
 
 Owners declared as plain-string shorthand (no `role`) never match this rule.
 
@@ -95,18 +95,18 @@ conditions:
   rule: IS_ENTITY_MULTI_OWNER_WITH_ROLE
   resourceType: catalog-entity
   params:
-    claims: ["$ownerRefs"]
-    roles: ["admin"]
+    claims: ['$ownerRefs']
+    roles: ['admin']
 ```
 
 ### `IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE`
 
 Like the above, but reads the allowlist of roles from a per-entity annotation whose value is a comma-separated list. Returns `false` when the annotation is absent — compose with `HAS_ANNOTATION` / `not` in your policy if you want a fallback branch.
 
-| Param | Type | Meaning |
-|-------|------|---------|
-| `claims` | `string[]` | Same as above. |
-| `annotation` | `string` | Annotation name whose value lists the allowed roles (CSV). |
+| Param        | Type       | Meaning                                                    |
+| ------------ | ---------- | ---------------------------------------------------------- |
+| `claims`     | `string[]` | Same as above.                                             |
+| `annotation` | `string`   | Annotation name whose value lists the allowed roles (CSV). |
 
 ```yaml
 # Per-entity role check driven by the scaffolder-edit-roles annotation
@@ -120,16 +120,20 @@ conditions:
             params: { annotation: backstage.io/scaffolder-edit-roles }
         - rule: IS_ENTITY_OWNER
           resourceType: catalog-entity
-          params: { claims: ["$ownerRefs"] }
+          params: { claims: ['$ownerRefs'] }
     # Annotation present → only owners whose role matches
     - rule: IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE
       resourceType: catalog-entity
       params:
-        claims: ["$ownerRefs"]
+        claims: ['$ownerRefs']
         annotation: backstage.io/scaffolder-edit-roles
 ```
 
-Pair this with any `catalog-entity` resource permission — for example `entity-scaffolder.edit` from [`@thecodingsheikh/backstage-plugin-entity-scaffolder`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/entity-scaffolder/entity-scaffolder/README.md), `catalog.entity.read`, `catalog.entity.update`, etc.
+Pair this with any `catalog-entity` resource permission — for example `catalog.entity.read`, `catalog.entity.delete` or `catalog.entity.refresh`.
+
+> Note that `catalog.entity.update` does not exist; the `update` action on `catalog-entity` is `catalog.entity.refresh`.
+
+To gate `entity-scaffolder.edit` from [`@thecodingsheikh/backstage-plugin-entity-scaffolder`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/entity-scaffolder/entity-scaffolder/README.md), use the `entity-scaffolder-entity` resource type instead of `catalog-entity` and install [`@thecodingsheikh/backstage-plugin-catalog-backend-module-entity-scaffolder`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder/README.md), which re-registers both of these rules against that type. That permission cannot be targeted through `catalog-entity`, because a conditional policy resolves `(resourceType, action)` to the first matching permission — `catalog.entity.refresh` — not to a name you choose.
 
 ### Notes on `toQuery`
 

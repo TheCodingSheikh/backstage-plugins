@@ -22,23 +22,23 @@ This plugin embeds a Backstage Scaffolder workflow into an entity's page, allowi
       isEntityScaffolderAvailable,
     } from '@thecodingsheikh/backstage-plugin-entity-scaffolder';
 
-
     // ...
-    const websiteEntityPage = ( // Or any other EntitPage
-      <EntityLayout>
-        {/* ... other routes */}
+    const websiteEntityPage = // Or any other EntitPage
+      (
+        <EntityLayout>
+          {/* ... other routes */}
 
-        <EntityLayout.Route
-          path="/entity-scaffolder"
-          title="manage"
-          if={isEntityScaffolderAvailable}
-        >
-          <EntityScaffolderContent/>
-        </EntityLayout.Route>
+          <EntityLayout.Route
+            path="/entity-scaffolder"
+            title="manage"
+            if={isEntityScaffolderAvailable}
+          >
+            <EntityScaffolderContent />
+          </EntityLayout.Route>
 
-        {/* ... other routes */}
-      </EntityLayout>
-    );
+          {/* ... other routes */}
+        </EntityLayout>
+      );
     ```
 
 ## RBAC for edit
@@ -47,21 +47,43 @@ This plugin integrates with the [Backstage Permission Framework](https://backsta
 
 The common package `@thecodingsheikh/backstage-plugin-entity-scaffolder-common` exports:
 
--   **`entityScaffolderEditPermission`** — permission name `entity-scaffolder.edit`, action `update`, `resourceType: catalog-entity`.
+- **`entityScaffolderEditPermission`** — permission name `entity-scaffolder.edit`, action `update`, `resourceType: entity-scaffolder-entity`.
+- **`RESOURCE_TYPE_ENTITY_SCAFFOLDER_ENTITY`** — the `entity-scaffolder-entity` string.
 
-Because the permission's resource type is `catalog-entity`, your existing catalog conditional rules (`IS_ENTITY_OWNER`, `HAS_ANNOTATION`, `IS_ENTITY_KIND`, …) apply to it directly — no custom rule code is needed.
+### Why a dedicated resource type
+
+The resource being authorized is an ordinary catalog `Entity`, but the permission deliberately does **not** reuse the catalog's `catalog-entity` resource type.
+
+Policy providers that persist conditional policies — most importantly the Red Hat Developer Hub RBAC plugin — do not let you name a permission. You declare a `(pluginId, resourceType, action)` triple and the provider binds the condition to the **first** permission it finds matching `(resourceType, action)`. Under `catalog-entity` + `update` that is always `catalog.entity.refresh`, so a policy could never be scoped to `entity-scaffolder.edit`.
+
+With its own resource type the lookup is unambiguous, and the ordinary catalog rules stay available because they are re-registered against it (see below).
 
 ### Installation
 
-1.  Install the common package (it's a transitive dep of the frontend plugin, but your permission backend or policy provider may need it too):
+1.  Install the catalog backend module. **This is required for any conditional policy** — it registers the resource type, the permission, the rules, and the entity lookup used to evaluate conditions:
 
     ```bash
-    yarn --cwd packages/backend add @thecodingsheikh/backstage-plugin-entity-scaffolder-common
+    yarn --cwd packages/backend add @thecodingsheikh/backstage-plugin-catalog-backend-module-entity-scaffolder
+    ```
+
+    ```ts
+    // packages/backend/src/index.ts
+    backend.add(
+      import(
+        '@thecodingsheikh/backstage-plugin-catalog-backend-module-entity-scaffolder'
+      ),
+    );
     ```
 
 2.  Make sure `@backstage/plugin-permission-backend` (and a policy provider, e.g. the RHDH RBAC plugin) is installed and wired up. The frontend already calls `usePermission` against `entity-scaffolder.edit` — without a permission backend, the result defaults to **allowed**.
 
+The module registers these rules against `entity-scaffolder-entity`, re-using the catalog's own implementations so they behave identically: `HAS_ANNOTATION`, `HAS_LABEL`, `HAS_METADATA`, `HAS_SPEC`, `IS_ENTITY_KIND`, `IS_ENTITY_OWNER`, plus `IS_ENTITY_MULTI_OWNER_WITH_ROLE` and `IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE` from [`@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md#permission-rules).
+
 ### RHDH policy examples
+
+`pluginId` stays `catalog` — the resource type is owned by the catalog plugin, so nothing has to be added to `permission.rbac.pluginsWithPermission`.
+
+> **`permissionMapping` takes an action, not a permission name.** RHDH only accepts `create`, `read`, `update`, `delete` or `use` there. A permission name such as `entity-scaffolder.edit` fails validation, and because the whole `conditional-policies.yaml` is parsed as one unit, a single bad entry silently discards **every** conditional policy in the file — look for `'permissionMapping' array contains non action value` in the backend logs.
 
 #### Deny by default, allow platform admins outright
 
@@ -82,12 +104,12 @@ conditional-policies.yaml: |
   result: CONDITIONAL
   roleEntityRef: role:default/all_users
   pluginId: catalog
-  resourceType: catalog-entity
+  resourceType: entity-scaffolder-entity
   permissionMapping:
-    - entity-scaffolder.edit
+    - update
   conditions:
     rule: IS_ENTITY_OWNER
-    resourceType: catalog-entity
+    resourceType: entity-scaffolder-entity
     params:
       claims: ["$ownerRefs"]
 ```
@@ -96,7 +118,7 @@ conditional-policies.yaml: |
 
 #### Role-aware owner checks (requires the multi-owner permission rule)
 
-If you want `backstage.io/scaffolder-edit-roles: 'admin'` to mean _"only owners whose `role: admin` may edit"_, install [`@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md#permission-rules) — it registers the `IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE` rule used below. The resulting policy looks like:
+If you want `backstage.io/scaffolder-edit-roles: 'admin'` to mean _"only owners whose `role: admin` may edit"_, install [`@thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor`](https://github.com/TheCodingSheikh/backstage-plugins/blob/main/plugins/multi-owner/catalog-backend-module-multi-owner-processor/README.md#permission-rules) — it provides the `IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE` rule used below. The resulting policy looks like:
 
 ```yaml
 conditional-policies.yaml: |
@@ -104,24 +126,26 @@ conditional-policies.yaml: |
   result: CONDITIONAL
   roleEntityRef: role:default/all_users
   pluginId: catalog
-  resourceType: catalog-entity
+  resourceType: entity-scaffolder-entity
   permissionMapping:
-    - entity-scaffolder.edit
+    - update
   conditions:
     anyOf:
       # No edit-roles annotation → fall back to plain owner check
       - allOf:
           - not:
               rule: HAS_ANNOTATION
-              resourceType: catalog-entity
+              resourceType: entity-scaffolder-entity
               params: { annotation: backstage.io/scaffolder-edit-roles }
           - rule: IS_ENTITY_OWNER
-            resourceType: catalog-entity
+            resourceType: entity-scaffolder-entity
             params: { claims: ["$ownerRefs"] }
       # Annotation present → only owners whose role matches the CSV in it
       - rule: IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE
-        resourceType: catalog-entity
-        params: { annotation: backstage.io/scaffolder-edit-roles }
+        resourceType: entity-scaffolder-entity
+        params:
+          claims: ["$ownerRefs"]
+          annotation: backstage.io/scaffolder-edit-roles
 ```
 
 With that rule in place, per-entity annotations drive the role check:
@@ -133,20 +157,40 @@ metadata:
     backstage.io/scaffolder-edit-roles: 'admin'
 spec:
   owners:
-    - { name: group:default/team, role: edit }       # denied
-    - { name: group:default/platform, role: admin }  # allowed
+    - { name: group:default/team, role: edit } # denied
+    - { name: group:default/platform, role: admin } # allowed
+```
+
+#### Upstream Backstage (custom `PermissionPolicy`)
+
+A hand-written policy can name the permission directly, but the decision it returns must use the same resource type:
+
+```ts
+if (request.permission.name === 'entity-scaffolder.edit') {
+  return {
+    result: AuthorizeResult.CONDITIONAL,
+    pluginId: 'catalog',
+    resourceType: RESOURCE_TYPE_ENTITY_SCAFFOLDER_ENTITY,
+    conditions: {
+      rule: 'IS_ENTITY_OWNER',
+      resourceType: RESOURCE_TYPE_ENTITY_SCAFFOLDER_ENTITY,
+      params: { claims },
+    },
+  };
+}
 ```
 
 ### Redhat Developer Hub (RHDH)
+
 This plugin can be installed as a dynamic plugin, [Check here](https://github.com/TheCodingSheikh/backstage-plugins/releases/tag/19874628921-1)
 
 ## Usage
 
 To enable the Scaffolder tab on an entity page, add the following annotations to the entity. The tab will only appear if both annotations are present.
 
--   **`backstage.io/scaffolder-template`**: The entity reference for the Scaffolder template to use.
--   **`backstage.io/last-applied-configuration`**: A JSON object string representing the template parameter values to to pass to the Scaffolder workflow.
--   **`backstage.io/immutable-fields`** *(optional)*: A comma-separated list of field names that should be disabled (non-editable) when the form is rendered from an entity page. This is useful for fields like `name` or `repoUrl` that should not change after initial creation.
+- **`backstage.io/scaffolder-template`**: The entity reference for the Scaffolder template to use.
+- **`backstage.io/last-applied-configuration`**: A JSON object string representing the template parameter values to to pass to the Scaffolder workflow.
+- **`backstage.io/immutable-fields`** _(optional)_: A comma-separated list of field names that should be disabled (non-editable) when the form is rendered from an entity page. This is useful for fields like `name` or `repoUrl` that should not change after initial creation.
 
 ### Example
 
@@ -168,7 +212,7 @@ spec:
 ```
 
 > **Note:** The `immutable-fields` annotation applies `ui:disabled` to the specified fields, which works with both standard form fields and custom field extensions like `RepoUrlPicker`, `OwnerPicker`, etc.
-It is best to add them automatically from a scaffolder template, for example
+> It is best to add them automatically from a scaffolder template, for example
 
 ```yaml
 apiVersion: scaffolder.backstage.io/v1beta3
@@ -187,7 +231,9 @@ spec:
           # ...
           params: ${{ parameters }}
 ```
+
 and in the template you can do
+
 ```yaml
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -197,9 +243,11 @@ metadata:
     backstage.io/last-applied-configuration: '${{ values.params | dump }}'
     backstage.io/scaffolder-template: template:entity-scaffolder-template
 ```
+
 or you can use the [catalog:annotate](https://www.npmjs.com/package/@backstage-community/plugin-scaffolder-backend-module-annotator) action instead, with conditional step (Example below)
 
 ### Conditional Workflow
+
 there is a special template parameter `firstRun` that is added with the value `false` in any scaffolder template initiated from an entity's page, this offers conditional steps, for example
 
 ```yaml
