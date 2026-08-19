@@ -78,6 +78,90 @@ describe('entity-scaffolder permission rules', () => {
     ).toBe(false);
   });
 
+  describe('IS_ENTITY_MULTI_OWNER_WITH_ANNOTATION_ROLE denies by default', () => {
+    // The scaffolder-edit policy uses this rule on its own, so every deny case
+    // below is a security guarantee, not just behaviour preservation.
+    const ANN = 'backstage.io/scaffolder-edit-roles';
+    const claims = ['group:default/platform'];
+
+    it('denies when the entity has no edit-roles annotation', () => {
+      const entity = makeEntity({
+        owners: [{ name: 'group:default/platform', role: 'admin' }],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(false);
+    });
+
+    it('denies when the annotation is present but empty', () => {
+      const entity = makeEntity({
+        annotations: { [ANN]: '   ' },
+        owners: [{ name: 'group:default/platform', role: 'admin' }],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(false);
+    });
+
+    it('denies an owner whose role is not in the annotation', () => {
+      const entity = makeEntity({
+        annotations: { [ANN]: 'admin' },
+        owners: [{ name: 'group:default/platform', role: 'edit' }],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(false);
+    });
+
+    it('denies a plain-string owner that carries no role', () => {
+      const entity = makeEntity({
+        annotations: { [ANN]: 'admin' },
+        owners: ['group:default/platform'],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(false);
+    });
+
+    it('denies a non-owner even when the role name matches', () => {
+      const entity = makeEntity({
+        annotations: { [ANN]: 'admin' },
+        owners: [{ name: 'group:default/other', role: 'admin' }],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(false);
+    });
+
+    it('allows only an owner whose role is listed in the annotation', () => {
+      const entity = makeEntity({
+        annotations: { [ANN]: 'admin,release' },
+        owners: [{ name: 'group:default/platform', role: 'release' }],
+      });
+      expect(
+        isEntityMultiOwnerWithAnnotationRole.apply(entity, {
+          claims,
+          annotation: ANN,
+        }),
+      ).toBe(true);
+    });
+  });
+
   it('preserves the multi-owner annotation-role behaviour after re-binding', () => {
     const entity = makeEntity({
       annotations: { 'backstage.io/scaffolder-edit-roles': 'admin' },

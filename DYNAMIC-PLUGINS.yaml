@@ -114,6 +114,10 @@ plugins:
   - path: plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder
     version: 0.1.0
     customCommand: yarn tsc
+    exportArgs: >-
+      --embed-package
+      @thecodingsheikh/backstage-plugin-entity-scaffolder-common
+      @thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor
 
   - path: plugins/scaffolder-field-validator
     version: 1.2.1
