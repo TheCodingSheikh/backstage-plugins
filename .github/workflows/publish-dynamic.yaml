@@ -127,8 +127,8 @@ jobs:
         if: steps.release_check.outputs.exists == 'false'
         run: |
           cd "${{ matrix.plugin.path }}"
-          # Pinned to the CLI that RHDH pairs with Backstage 1.54.9 (see backstage.json).
-          npx @red-hat-developer-hub/cli@2.1.2 plugin export ${{ matrix.plugin.exportArgs }}
+          # Pinned to the CLI that RHDH 1.10 pairs with Backstage 1.49.4 (see backstage.json).
+          npx @red-hat-developer-hub/cli@1.10.8 plugin export ${{ matrix.plugin.exportArgs }}
 
       - name: Filter config schemas in dynamic plugin output
         if: steps.release_check.outputs.exists == 'false'
