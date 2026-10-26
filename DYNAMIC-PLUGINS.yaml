@@ -46,7 +46,7 @@
 
 plugins:
   - path: plugins/entity-scaffolder/entity-scaffolder
-    version: 0.6.0
+    version: 0.7.0
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -67,7 +67,7 @@ plugins:
                         - isEntityScaffolderAvailable
 
   - path: plugins/catalog-backend-module-kubernetes
-    version: 0.2.0
+    version: 0.3.0
     keepSchemas: [catalog]
     customCommand: yarn tsc
     config: |
@@ -89,7 +89,7 @@ plugins:
                   timeout: { seconds: 600 }
 
   - path: plugins/multi-owner/multi-owner
-    version: 1.1.0
+    version: 1.2.0
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -108,11 +108,11 @@ plugins:
                         - isMultiOwnerAvailable
 
   - path: plugins/multi-owner/catalog-backend-module-multi-owner-processor
-    version: 1.1.0
+    version: 1.2.0
     customCommand: yarn tsc
 
   - path: plugins/entity-scaffolder/catalog-backend-module-entity-scaffolder
-    version: 0.2.0
+    version: 0.3.0
     customCommand: yarn tsc
     exportArgs: >-
       --embed-package
@@ -120,7 +120,7 @@ plugins:
       @thecodingsheikh/backstage-plugin-catalog-backend-module-multi-owner-processor
 
   - path: plugins/scaffolder-field-validator
-    version: 1.3.0
+    version: 1.4.0
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -129,12 +129,12 @@ plugins:
               scaffolderFieldExtensions:
                 - importName: ScaffolderFieldValidatorExtension
 
-  # Roadie jumped from Backstage 1.44.2 straight to 1.55.2 — no 1.54.x source exists.
-  # 1.55.2 is the closest available pin (same as RHDH's own overlay for 1.54.9).
+  # Roadie jumped from Backstage 1.44.2 straight to 1.55.2 — no 1.49.x source exists.
+  # 1.44.2 is the closest pin for RHDH 1.10 (Backstage 1.49.4), same as RHDH's own overlay.
   - repo: RoadieHQ/roadie-backstage-plugins
-    ref: b3c7c455382c21054dcf2514d0e4d87fbae3504d
+    ref: e231713f2276d310649706a26d25753b1e823d67
     path: plugins/scaffolder-field-extensions/scaffolder-frontend-module-http-request-field
-    version: 2.4.1
+    version: 2.3.0
     config: |
       pluginConfig:
         dynamicPlugins:
@@ -143,12 +143,12 @@ plugins:
               scaffolderFieldExtensions:
                 - importName: SelectFieldFromApiExtension
 
-  # workspaces/vault "Version Packages" release on Backstage 1.54.5.
+  # workspaces/vault "Version Packages" release on Backstage 1.49.2.
   - repo: backstage/community-plugins
-    ref: 60186ce2e2d5eeb4ecc266cd822e6252e6bf7264
+    ref: 48ab3db60c4348111c12f1152834e4604ae81115
     workspaceDir: workspaces/vault
     path: workspaces/vault/plugins/vault
-    version: 0.24.0
+    version: 0.19.0
     keepSchemas: [vault]
     customCommand: yarn tsc
     config: |
@@ -178,19 +178,18 @@ plugins:
                         - hasAnnotation: vault.io/secrets-path
 
   - repo: backstage/community-plugins
-    ref: 60186ce2e2d5eeb4ecc266cd822e6252e6bf7264
+    ref: 48ab3db60c4348111c12f1152834e4604ae81115
     workspaceDir: workspaces/vault
     path: workspaces/vault/plugins/vault-backend
-    version: 0.26.0
+    version: 0.21.0
     customCommand: yarn tsc
 
-  # workspaces/grafana "Version Packages" release on Backstage 1.54.5. 1.0.0 is the
-  # MUI -> Backstage UI migration; export names and grafana.domain config unchanged.
+  # workspaces/grafana "Version Packages" release on Backstage 1.49.2.
   - repo: backstage/community-plugins
-    ref: dd1773fa6900586634ced8e118f1ee786307a456
+    ref: 97599a21566d6bc91a55555e271770b24ad91679
     workspaceDir: workspaces/grafana
     path: workspaces/grafana/plugins/grafana
-    version: 1.0.0
+    version: 0.17.0
     keepSchemas: [grafana]
     customCommand: yarn tsc
     config: |
