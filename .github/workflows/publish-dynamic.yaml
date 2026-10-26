@@ -128,7 +128,12 @@ jobs:
         run: |
           cd "${{ matrix.plugin.path }}"
           # Pinned to the CLI that RHDH 1.10 pairs with Backstage 1.49.4 (see backstage.json).
-          npx @red-hat-developer-hub/cli@1.10.8 plugin export ${{ matrix.plugin.exportArgs }}
+          # webpack/schema-utils are pinned alongside it: npx installs without a lockfile, and
+          # schema-utils >=4.8.0 peers on webpack ^5.112, which hoists a second webpack next to
+          # the CLI's ~5.105 and breaks frontend exports ("Cannot read properties of undefined
+          # (reading 'tap')").
+          npx -p @red-hat-developer-hub/cli@1.10.8 -p webpack@5.105.4 -p schema-utils@4.7.0 \
+            rhdh-cli plugin export ${{ matrix.plugin.exportArgs }}
 
       - name: Filter config schemas in dynamic plugin output
         if: steps.release_check.outputs.exists == 'false'
