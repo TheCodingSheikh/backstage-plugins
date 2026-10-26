@@ -33,6 +33,10 @@ jest.mock('@roadiehq/plugin-scaffolder-frontend-module-http-request-field', () =
   SelectFieldFromApiExtension: () => null,
 }));
 
+jest.mock('@thecodingsheikh/backstage-plugin-scaffolder-field-validator', () => ({
+  ScaffolderFieldValidatorExtension: () => null,
+}));
+
 const mockPermissionApi = (result: AuthorizeResult.ALLOW | AuthorizeResult.DENY) => ({
   authorize: jest.fn(async () => ({ result } as const)),
   authorizeConditional: jest.fn(async () => ({ result } as const)),

@@ -1,6 +1,6 @@
 {
   "name": "@thecodingsheikh/backstage-plugin-multi-owner",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "license": "Apache-2.0",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -27,25 +27,25 @@
     "postpack": "backstage-cli package postpack"
   },
   "dependencies": {
-    "@backstage/catalog-model": "^1.7.6",
-    "@backstage/core-components": "^0.18.3",
-    "@backstage/core-plugin-api": "^1.12.0",
-    "@backstage/frontend-plugin-api": "^0.13.1",
-    "@backstage/plugin-catalog-react": "^1.21.3",
-    "@backstage/theme": "^0.7.0",
+    "@backstage/catalog-model": "^1.10.0",
+    "@backstage/core-components": "^0.18.13",
+    "@backstage/core-plugin-api": "^1.12.9",
+    "@backstage/frontend-plugin-api": "^0.18.0",
+    "@backstage/plugin-catalog-react": "^3.2.2",
+    "@backstage/theme": "^0.7.3",
     "@material-ui/core": "^4.9.13",
     "@material-ui/icons": "^4.9.1",
-    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.4",
+    "@thecodingsheikh/backstage-plugin-multi-owner-common": "^1.0.5",
     "react-use": "^17.2.4"
   },
   "peerDependencies": {
     "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@backstage/cli": "^0.34.5",
-    "@backstage/core-app-api": "^1.19.2",
-    "@backstage/dev-utils": "^1.1.17",
-    "@backstage/test-utils": "^1.7.13",
+    "@backstage/cli": "^0.36.5",
+    "@backstage/core-app-api": "^1.20.4",
+    "@backstage/dev-utils": "^1.1.26",
+    "@backstage/test-utils": "^1.7.21",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
